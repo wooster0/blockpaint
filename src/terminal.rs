@@ -1,4 +1,5 @@
 use crate::util::Size;
+use std::io::Write;
 use std::{convert::TryFrom, fmt, io, ops};
 pub mod event;
 mod sys;
@@ -41,15 +42,12 @@ impl Terminal {
     }
 
     pub fn write(&mut self, string: &str) {
-        use std::io::Write;
         self.handle
             .write_all(string.as_bytes())
             .expect("write to the terminal failed");
     }
 
     pub fn flush(&mut self) {
-        use std::io::Write;
-
         self.handle.flush().expect("flushing failed");
     }
 }

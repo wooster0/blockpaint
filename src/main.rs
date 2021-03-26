@@ -3,7 +3,6 @@ mod debug;
 mod event;
 mod terminal;
 mod util;
-pub mod window;
 
 fn main() {
     let mut terminal = terminal::Terminal::new();

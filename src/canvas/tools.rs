@@ -2,20 +2,33 @@ use super::Canvas;
 use crate::{terminal::SIZE, util::Color};
 
 impl Canvas {
-    pub fn dot(&mut self, x: SIZE, y: SIZE, color: Color) {
+    /// Draws a block.
+    pub fn block(&mut self, x: SIZE, y: SIZE, color: Color) {
         self.terminal.set_cursor(x, y / 2);
+        self.terminal.set_foreground_color(color);
         self.half_block(x, y, color);
+        self.terminal.reset_colors();
+    }
+
+    /// Efficiently draws multiple blocks in a row.
+    pub fn blocks(&mut self, x: SIZE, y: SIZE, color: Color, count: SIZE) {
+        self.terminal.set_cursor(x, y / 2);
+        self.terminal.set_foreground_color(color);
+        for index in 0..count {
+            self.half_block(x + index, y, color);
+        }
+        self.terminal.reset_colors();
     }
 
     pub fn brush(&mut self, x: SIZE, y: SIZE, color: Color, size: SIZE) {
         match size {
-            1 => self.dot(x, y, color), // Middle dot
+            1 => self.block(x, y, color), // Middle dot
             2 => {
-                self.dot(x, y - 1, color); // Left dot
-                self.dot(x - 1, y, color); // Upper dot
-                self.dot(x, y, color); // Middle dot
-                self.dot(x + 1, y, color); // Lower dot
-                self.dot(x, y + 1, color); // Right dot
+                self.block(x, y - 1, color); // Left dot
+                self.block(x - 1, y, color); // Upper dot
+                self.block(x, y, color); // Middle dot
+                self.block(x + 1, y, color); // Lower dot
+                self.block(x, y + 1, color); // Right dot
             }
             _ => {
                 self.circle(x, y, color, size - 1);
@@ -23,34 +36,12 @@ impl Canvas {
         }
     }
 
-    pub fn circle(&mut self, x: SIZE, y: SIZE, color: Color, radius: SIZE) {
-        let radius = radius as i32;
-        let center_x = x as i32;
-        let center_y = y as i32;
-
-        // Original: https://stackoverflow.com/a/59211338/15415674
-        // Changes were made.
-        let radius_sqr = radius.pow(2);
-        let mut x = -radius;
-        while x < radius {
-            let hh = ((radius_sqr - x * x) as f64).sqrt() as i32;
-            let rx = center_x + x;
-            let ph = center_y + hh;
-            let mut y = center_y - hh;
-            while y < ph {
-                self.dot(rx as SIZE, y as SIZE, color);
-                y += 1;
-            }
-            x += 1;
-        }
-    }
-
     pub fn quill(&mut self, x: SIZE, y: SIZE, color: Color, size: SIZE) {
         for size in 0..=size {
             if size % 2 == 0 {
-                self.dot(x, y + size / 2, color);
+                self.block(x, y + size / 2, color);
             } else {
-                self.dot(x, y - size / 2, color);
+                self.block(x, y - size / 2, color);
             }
         }
     }
@@ -70,6 +61,7 @@ impl Canvas {
 pub enum Tool {
     Brush,
     Quill,
+    Rectangle,
 }
 
 pub use crate::util::Point;
@@ -102,6 +94,9 @@ impl Tool {
             }
             Tool::Quill => {
                 canvas.quill(x, y, color, size);
+            }
+            Tool::Rectangle => {
+                canvas.hollow_rectangle(x, y, size, size, color);
             }
         }
     }

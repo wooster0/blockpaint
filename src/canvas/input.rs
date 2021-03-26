@@ -1,5 +1,5 @@
+use super::palette;
 use crate::{
-    canvas::palette,
     terminal::{Terminal, SIZE},
     util::{self, Color},
 };
@@ -7,7 +7,7 @@ use crate::{
 pub struct Field {
     pub x: SIZE,
     pub y: SIZE,
-    // Input must only be mutated through the methods provided so that we can update accordingly.
+    // Input must only be mutated through the methods provided so that we can update accordingly
     input: String,
     pub x_center: SIZE,
     pub cursor_x: SIZE,
@@ -34,8 +34,8 @@ impl Field {
     }
 
     pub fn redraw(&self, terminal: &mut Terminal) {
-        terminal.set_cursor(self.x, self.y);
-        terminal.write(&" ".repeat(palette::WIDTH as usize));
+        terminal.set_cursor(self.x + 1, self.y);
+        terminal.write(&" ".repeat(palette::GRAYSCALE_COLOR_COUNT as usize));
         terminal.set_cursor(self.x_center, self.y);
         terminal.write(&self.input);
         terminal.set_cursor(self.x_center + self.cursor_x, self.y);
@@ -44,6 +44,12 @@ impl Field {
     pub fn update(&mut self) -> Option<Color> {
         self.x_center = Self::calculate_x_center(self.x, self.input.len());
         util::parse_rgb_color(&self.input)
+    }
+
+    pub fn clear(&mut self) {
+        self.input.clear();
+        self.cursor_x = 0;
+        self.update();
     }
 
     pub fn remove_word_to_left_of_cursor(&mut self) -> Option<Color> {

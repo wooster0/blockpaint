@@ -6,6 +6,7 @@ pub struct Point {
     pub y: SIZE,
 }
 
+#[derive(Clone)]
 pub struct Size {
     pub width: SIZE,
     pub height: SIZE,
@@ -22,8 +23,6 @@ pub struct Size {
 // Float,       e.g. (1.0, 0.0, 0.0),
 // Percentage,  e.g. (100%, 0%, 0%),
 pub fn parse_rgb_color(string: &str) -> Option<Color> {
-    let mut chars = string.chars();
-
     let mut r: Option<u8> = None;
     let mut g: Option<u8> = None;
     let mut b: Option<u8> = None;
@@ -32,7 +31,7 @@ pub fn parse_rgb_color(string: &str) -> Option<Color> {
 
     let mut hexdigits_in_a_row = 0;
     let mut index = 0;
-    while let Some(char) = chars.next() {
+    for char in string.chars() {
         match char {
             '0'..='9' => {
                 if let Some(byte) = char.to_digit(10) {
@@ -67,11 +66,9 @@ pub fn parse_rgb_color(string: &str) -> Option<Color> {
 
         index += 1;
 
-        if hexdigits_in_a_row == 6 {
-            if index >= hexdigits_in_a_row {
-                if let Some(color) = parse_hex(string, index - hexdigits_in_a_row) {
-                    return Some(color);
-                }
+        if hexdigits_in_a_row == 6 && index >= hexdigits_in_a_row {
+            if let Some(color) = parse_hex(string, index - hexdigits_in_a_row) {
+                return Some(color);
             }
         }
     }
@@ -144,6 +141,7 @@ mod tests {
     fn test_parse_rgb_color() {
         assert_eq!(parse("255, 255, 255"), rgb(255, 255, 255));
         assert_eq!(parse("200,255,255"), rgb(200, 255, 255));
+        assert_eq!(parse("-200,-255,-255"), rgb(200, 255, 255));
         assert_eq!(parse("(255,200,255)"), rgb(255, 200, 255));
         assert_eq!(parse("www255,255,200www"), rgb(255, 255, 200));
         assert_eq!(parse("    www100www,www0www,www100www"), rgb(100, 0, 100));

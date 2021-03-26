@@ -1,13 +1,15 @@
+pub mod border;
 pub mod input;
 pub mod palette;
+pub mod shapes;
 pub mod tools;
 use crate::{
-    terminal::{self},
+    terminal::{Terminal, SIZE},
     util::Color,
 };
 
 pub struct Canvas {
-    pub terminal: terminal::Terminal,
+    pub terminal: Terminal,
     pub cells: Vec<Cell>,
 }
 
@@ -15,8 +17,8 @@ pub struct Canvas {
 pub struct Cell {
     pub upper_block: Option<Color>,
     pub lower_block: Option<Color>,
-    pub x: terminal::SIZE,
-    pub y: terminal::SIZE,
+    pub x: SIZE,
+    pub y: SIZE,
 }
 
 impl Default for Cell {
@@ -31,28 +33,31 @@ impl Default for Cell {
 }
 
 impl Canvas {
-    pub fn new(terminal: terminal::Terminal) -> Self {
+    pub fn new(terminal: Terminal) -> Self {
         Self {
             terminal,
-            cells: vec![Cell::default(); (terminal::SIZE::MAX as usize).pow(2)],
+            cells: vec![Cell::default(); (SIZE::MAX as usize).pow(2)],
         }
     }
 
-    pub fn half_block(&mut self, x: terminal::SIZE, y: terminal::SIZE, color: Color) {
-        let position = x as usize + terminal::SIZE::MAX as usize * (y as usize / 2);
+    fn get_mut_cell(&mut self, x: SIZE, y: SIZE) -> &mut Cell {
+        let position = x as usize + SIZE::MAX as usize * (y as usize / 2);
 
-        let current_cell = &self
-            .cells
-            .get(position)
-            .unwrap_or_else(|| panic!("coloring block at ({}, {}) (out of range)", x, y));
+        self.cells
+            .get_mut(position)
+            .unwrap_or_else(|| panic!("cell at ({}, {}) is out of range", x, y))
+    }
 
-        self.terminal.set_foreground_color(color);
+    /// Draws a half block. This method is exposed publicly in a higher level method [`Canvas::block`].
+    fn half_block(&mut self, x: SIZE, y: SIZE, color: Color) {
+        let current_cell = self.get_mut_cell(x, y);
         if y % 2 == 0 {
             if let Some(lower_block_color) = current_cell.lower_block {
                 self.terminal.set_background_color(lower_block_color);
             }
             self.terminal.write("▀");
-            self.cells[position] = Cell {
+            let current_cell = self.get_mut_cell(x, y); // TODO: can this second `get` be avoided?
+            *current_cell = Cell {
                 upper_block: Some(color),
                 lower_block: current_cell.lower_block,
                 x,
@@ -63,24 +68,24 @@ impl Canvas {
                 self.terminal.set_background_color(upper_block_color);
             }
             self.terminal.write("▄");
-            self.cells[position] = Cell {
+            let current_cell = self.get_mut_cell(x, y); // TODO: can this second `get` be avoided?
+            *current_cell = Cell {
                 upper_block: current_cell.upper_block,
                 lower_block: Some(color),
                 x,
                 y,
             }
         }
-        self.terminal.reset_colors();
     }
 
-    pub fn redraw(&mut self) {
+    fn redraw(&mut self) {
         for index in 0..self.cells.len() {
-            let cell = &self.cells[index].clone();
+            let cell = self.cells[index].clone();
             if let Some(upper_block_color) = cell.upper_block {
-                self.dot(cell.x, cell.y, upper_block_color);
+                self.block(cell.x, cell.y, upper_block_color);
             }
             if let Some(lower_block_color) = cell.lower_block {
-                self.dot(cell.x, cell.y, lower_block_color);
+                self.block(cell.x, cell.y, lower_block_color);
             }
         }
         self.terminal.flush();
