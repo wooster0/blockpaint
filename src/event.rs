@@ -35,9 +35,8 @@ pub fn main_loop(terminal: &mut Terminal) {
         if let (Some(input_field), _) | (_, Some(input_field)) =
             (&mut palette_input_field, &mut save_input_field)
         {
-            let entered = input::handle_input(terminal, &event, input_field, &mut state);
-
-            if entered {
+            let skip = input::handle_input(terminal, &event, input_field, &mut state);
+            if skip {
                 continue;
             }
         }
