@@ -5,7 +5,7 @@ use crate::{
         event::{Event, EventKind, KeyEvent, KeyModifier, MouseButton, MouseEvent},
         SIZE, {Size, Terminal},
     },
-    util::Color,
+    util::{Color, Point},
 };
 use crossterm::{cursor, event, style, terminal, QueueableCommand};
 
@@ -122,11 +122,7 @@ impl Terminal {
                 event::KeyCode::Down => Event::Key(KeyEvent::Down),
                 event::KeyCode::Left => Event::Key(KeyEvent::Left(None)),
                 event::KeyCode::Right => Event::Key(KeyEvent::Right(None)),
-                _ => {
-                    self.set_cursor(0, 0);
-                    self.write(&format!("{:?}", modifiers));
-                    return None;
-                }
+                _ => return None,
             },
             event::Event::Resize(width, height) => {
                 Event::Resize(Size::new(width as usize, height as usize))
@@ -135,9 +131,9 @@ impl Terminal {
         Some(event)
     }
 
-    pub fn set_cursor(&mut self, x: SIZE, y: SIZE) {
+    pub fn set_cursor(&mut self, point: Point) {
         self.handle
-            .queue(cursor::MoveTo(x as u16, y as u16))
+            .queue(cursor::MoveTo(point.x as u16, point.y as u16))
             .unwrap();
     }
 
@@ -152,6 +148,14 @@ impl Terminal {
         self.handle
             .queue(style::SetForegroundColor(Self::convert_color(color)))
             .unwrap();
+    }
+
+    pub fn enable_italic(&mut self) {
+        self.write_args(format_args!("{}", style::Attribute::Italic));
+    }
+
+    pub fn disable_italic(&mut self) {
+        self.write_args(format_args!("{}", style::Attribute::NoItalic));
     }
 
     pub fn set_background_color(&mut self, color: Color) {

@@ -1,15 +1,107 @@
+use crate::canvas::palette;
 use crate::terminal::SIZE;
-use std::convert::TryFrom;
+use std::{convert::TryFrom, fmt, ops};
 
+#[derive(Clone, Debug, Copy, PartialEq)]
 pub struct Point {
     pub x: SIZE,
     pub y: SIZE,
 }
 
-#[derive(Clone)]
+impl Default for Point {
+    fn default() -> Self {
+        Self {
+            x: Default::default(),
+            y: Default::default(),
+        }
+    }
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+#[derive(Clone, Debug)]
 pub struct Size {
     pub width: SIZE,
     pub height: SIZE,
+}
+
+impl Size {
+    pub fn new(width: usize, height: usize) -> Self {
+        Self {
+            width: SIZE::try_from(width).unwrap_or_else(|_| {
+                panic!("terminal width must be in range {}", Range(0..SIZE::MAX));
+            }),
+            height: SIZE::try_from(height).unwrap_or_else(|_| {
+                panic!("terminal height must be in range {}", Range(0..SIZE::MAX));
+            }),
+        }
+    }
+}
+
+struct Range(ops::Range<SIZE>);
+
+impl fmt::Display for Range {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "{} to {}", self.0.start, self.0.end)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Color {
+    // 4-bit colors
+    DarkRed,
+    DarkGreen,
+    DarkYellow,
+    DarkBlue,
+    DarkMagenta,
+    DarkCyan,
+    Black,
+    Gray,
+    DarkGray,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    // 8-bit colors
+    ByteColor(u8),
+    // 24-bit colors
+    Rgb { r: u8, g: u8, b: u8 },
+}
+
+impl Default for Color {
+    fn default() -> Self {
+        Color::Black
+    }
+}
+
+impl Color {
+    pub fn invert(&self) -> Self {
+        use Color::*;
+        match self {
+            ByteColor(mut byte) => {
+                if byte >= u8::MAX - palette::GRAYSCALE_COLOR_COUNT {
+                    byte = u8::MAX - byte;
+                    byte += u8::MAX - palette::GRAYSCALE_COLOR_COUNT - 1;
+                } else {
+                    byte = u8::MAX - byte - palette::FOUR_BIT_COLOR_COUNT + 1;
+                }
+                ByteColor(byte)
+            }
+            Rgb { r, g, b } => Rgb {
+                r: u8::MAX - r,
+                g: u8::MAX - g,
+                b: u8::MAX - b,
+            },
+            Black | DarkGray => White,
+            _ => Black,
+        }
+    }
 }
 
 /// Tries to parse the input into an RGB color.
@@ -98,31 +190,6 @@ fn parse_hex(string: &str, index: usize) -> Option<Color> {
     } else {
         None
     }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Color {
-    // 4-bit colors
-    DarkRed,
-    DarkGreen,
-    DarkYellow,
-    DarkBlue,
-    DarkMagenta,
-    DarkCyan,
-    Black,
-    Gray,
-    DarkGray,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    // 8-bit colors
-    ByteColor(u8),
-    // 24-bit colors
-    Rgb { r: u8, g: u8, b: u8 },
 }
 
 #[cfg(test)]

@@ -1,47 +1,104 @@
 use super::Canvas;
+use crate::terminal::{
+    event::{Event, EventKind, MouseButton, MouseEvent},
+    Terminal,
+};
+use crate::util::Point;
 use crate::{terminal::SIZE, util::Color};
 
 impl Canvas {
     /// Draws a block.
-    pub fn block(&mut self, x: SIZE, y: SIZE, color: Color) {
-        self.terminal.set_cursor(x, y / 2);
+    pub fn block(&mut self, point: Point, color: Color) {
+        self.terminal.set_cursor(Point {
+            y: point.y / 2,
+            ..point
+        });
         self.terminal.set_foreground_color(color);
-        self.half_block(x, y, color);
+        self.half_block(point, color);
         self.terminal.reset_colors();
     }
 
     /// Efficiently draws multiple blocks in a row.
-    pub fn blocks(&mut self, x: SIZE, y: SIZE, color: Color, count: SIZE) {
-        self.terminal.set_cursor(x, y / 2);
+    pub fn blocks(&mut self, point: Point, color: Color, count: SIZE) {
+        self.terminal.set_cursor(Point {
+            y: point.y / 2,
+            ..point
+        });
         self.terminal.set_foreground_color(color);
         for index in 0..count {
-            self.half_block(x + index, y, color);
+            self.half_block(
+                Point {
+                    x: point.x + index,
+                    ..point
+                },
+                color,
+            );
         }
         self.terminal.reset_colors();
     }
 
-    pub fn brush(&mut self, x: SIZE, y: SIZE, color: Color, size: SIZE) {
+    pub fn brush(&mut self, point: Point, color: Color, size: SIZE) {
         match size {
-            1 => self.block(x, y, color), // Middle dot
+            1 => self.block(point, color), // Middle dot
             2 => {
-                self.block(x, y - 1, color); // Left dot
-                self.block(x - 1, y, color); // Upper dot
-                self.block(x, y, color); // Middle dot
-                self.block(x + 1, y, color); // Lower dot
-                self.block(x, y + 1, color); // Right dot
+                self.block(
+                    // Left dot
+                    Point {
+                        y: point.y - 1,
+                        ..point
+                    },
+                    color,
+                );
+                self.block(
+                    // Upper dot
+                    Point {
+                        x: point.x - 1,
+                        ..point
+                    },
+                    color,
+                );
+                self.block(point, color); // Middle dot
+                self.block(
+                    // Lower dot
+                    Point {
+                        x: point.x + 1,
+                        ..point
+                    },
+                    color,
+                );
+                self.block(
+                    // Right dot
+                    Point {
+                        y: point.y + 1,
+                        ..point
+                    },
+                    color,
+                );
             }
             _ => {
-                self.circle(x, y, color, size - 1);
+                self.circle(point, color, size - 1);
             }
         }
     }
 
-    pub fn quill(&mut self, x: SIZE, y: SIZE, color: Color, size: SIZE) {
+    pub fn quill(&mut self, point: Point, color: Color, size: SIZE) {
         for size in 0..=size {
             if size % 2 == 0 {
-                self.block(x, y + size / 2, color);
+                self.block(
+                    Point {
+                        y: point.y + size / 2,
+                        ..point
+                    },
+                    color,
+                );
             } else {
-                self.block(x, y - size / 2, color);
+                self.block(
+                    Point {
+                        y: point.y - size / 2,
+                        ..point
+                    },
+                    color,
+                );
             }
         }
     }
@@ -58,45 +115,57 @@ impl Canvas {
     }
 }
 
+#[derive(Clone)]
 pub enum Tool {
     Brush,
     Quill,
     Rectangle,
 }
 
-pub use crate::util::Point;
+impl Default for Tool {
+    fn default() -> Self {
+        Self::Brush
+    }
+}
 
 impl Tool {
     pub fn draw(
         &self,
         canvas: &mut Canvas,
-        x: SIZE,
-        y: SIZE,
+        mut point: Point,
         color: Color,
-        size: SIZE,
         last_point: &mut Option<Point>,
+        tool_size: SIZE,
     ) {
-        let y = normalize(y);
-        if let Some(point) = last_point {
-            for point in canvas.line(point.x, point.y, x, y) {
-                self.r#use(canvas, point.x as SIZE, point.y as SIZE, color, size);
+        point.y = normalize(point.y);
+        if let Some(last_point) = &last_point {
+            for line_point in canvas.line(last_point.x, last_point.y, point.x, point.y) {
+                self.r#use(
+                    canvas,
+                    Point {
+                        x: line_point.x as SIZE,
+                        y: line_point.y as SIZE,
+                    },
+                    color,
+                    tool_size,
+                );
             }
         } else {
-            self.r#use(canvas, x, y, color, size);
+            self.r#use(canvas, point, color, tool_size);
         }
-        *last_point = Some(Point { x, y });
+        *last_point = Some(point);
     }
 
-    fn r#use(&self, canvas: &mut Canvas, x: SIZE, y: SIZE, color: Color, size: SIZE) {
+    fn r#use(&self, canvas: &mut Canvas, point: Point, color: Color, size: SIZE) {
         match self {
             Tool::Brush => {
-                canvas.brush(x, y, color, size);
+                canvas.brush(point, color, size);
             }
             Tool::Quill => {
-                canvas.quill(x, y, color, size);
+                canvas.quill(point, color, size);
             }
             Tool::Rectangle => {
-                canvas.hollow_rectangle(x, y, size, size, color);
+                canvas.hollow_rectangle(point, size, size, color);
             }
         }
     }
@@ -104,4 +173,42 @@ impl Tool {
 
 fn normalize(value: SIZE) -> SIZE {
     value * 2
+}
+
+pub fn color_picker(terminal: &mut Terminal, canvas: &mut Canvas, state: &mut crate::event::State) {
+    terminal.show_cursor();
+    while let Some(event) = terminal.read_event() {
+        match event {
+            Event::Mouse(MouseEvent { kind, x, y }) => {
+                let point = Point { x, y };
+
+                match kind {
+                    EventKind::Release(mouse_button) => {
+                        let cell = canvas.get_cell(Point {
+                            y: point.y * 2,
+                            ..point
+                        });
+                        let color = cell.upper_block.or(cell.lower_block).unwrap_or_default();
+                        match mouse_button {
+                            MouseButton::Left => {
+                                state.left_color = color;
+                            }
+                            MouseButton::Right => {
+                                state.right_color = color;
+                            }
+                            _ => {}
+                        }
+                        terminal.hide_cursor();
+                        terminal.flush();
+                        break;
+                    }
+                    _ => {
+                        terminal.set_cursor(point);
+                        terminal.flush();
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
 }

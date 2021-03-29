@@ -1,6 +1,7 @@
 mod canvas;
 mod debug;
 mod event;
+mod input;
 mod terminal;
 mod util;
 
@@ -10,7 +11,6 @@ fn main() {
     terminal.set_title("BlockPaint (Untitled)");
 
     terminal.initialize();
-    let temporary_terminal = terminal::Terminal::new();
-    event::r#loop(temporary_terminal);
+    event::main_loop(&mut terminal);
     terminal.deinitialize();
 }

@@ -1,32 +1,11 @@
-use crate::util::Size;
+use crate::util::{Point, Size};
 use std::io::Write;
-use std::{convert::TryFrom, fmt, io, ops};
+use std::{fmt, io};
 pub mod event;
 mod sys;
 
 /// Defines the terminal width and height boundary. 255 cells.
 pub type SIZE = u8;
-
-impl Size {
-    fn new(width: usize, height: usize) -> Self {
-        Self {
-            width: SIZE::try_from(width).unwrap_or_else(|_| {
-                panic!("terminal width must be in range {}", Range(0..SIZE::MAX));
-            }),
-            height: SIZE::try_from(height).unwrap_or_else(|_| {
-                panic!("terminal height must be in range {}", Range(0..SIZE::MAX));
-            }),
-        }
-    }
-}
-
-struct Range(ops::Range<SIZE>);
-
-impl fmt::Display for Range {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "{} to {}", self.0.start, self.0.end)
-    }
-}
 
 pub struct Terminal {
     pub handle: io::Stdout,
@@ -47,8 +26,24 @@ impl Terminal {
             .expect("write to the terminal failed");
     }
 
+    pub fn write_args(&mut self, string: fmt::Arguments) {
+        self.handle
+            .write_fmt(string)
+            .expect("formatted write to the terminal failed");
+    }
+
     pub fn flush(&mut self) {
         self.handle.flush().expect("flushing failed");
+    }
+
+    pub fn get_centered_border_point(&self, size: &Size) -> Point {
+        let mut point = Point {
+            x: self.size.width / 2 - size.width / 2,
+            y: self.size.height - size.height / 2,
+        };
+        point.y /= 2;
+        point.y += 1;
+        point
     }
 }
 

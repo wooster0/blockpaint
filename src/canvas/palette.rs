@@ -1,21 +1,22 @@
 use crate::{
-    canvas::{input, Canvas},
+    canvas::Canvas,
+    input,
     terminal::{Terminal, SIZE},
-    util::{Color, Point},
+    util::{Color, Point, Size},
 };
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct ClickableColor {
-    pub x: SIZE,
-    pub y: SIZE,
+    pub point: Point,
     pub width: SIZE,
     pub color: Color,
 }
 
-pub fn get_color(clickable_colors: &[ClickableColor], x: SIZE, y: SIZE) -> Option<Color> {
+pub fn get_color(clickable_colors: &[ClickableColor], point: Point) -> Option<Color> {
+    let (x, y) = (point.x, point.y);
     for clickable_color in clickable_colors {
         for index in 0..clickable_color.width {
-            if x == clickable_color.x + index && y == clickable_color.y {
+            if x == clickable_color.point.x + index && y == clickable_color.point.y {
                 return Some(clickable_color.color);
             }
         }
@@ -25,18 +26,56 @@ pub fn get_color(clickable_colors: &[ClickableColor], x: SIZE, y: SIZE) -> Optio
 
 pub const WIDTH: SIZE = 26;
 pub const GRAYSCALE_COLOR_COUNT: SIZE = 24;
+pub const FOUR_BIT_COLOR_COUNT: SIZE = 8 * 2;
 
 pub struct Colors;
+
+enum Direction {
+    Left,
+    Right,
+}
+
+pub fn draw_left_color(terminal: &mut Terminal, color: Color) {
+    draw_direction_color(terminal, color, Direction::Left);
+}
+
+pub fn draw_right_color(terminal: &mut Terminal, color: Color) {
+    draw_direction_color(terminal, color, Direction::Right);
+}
+
+fn draw_direction_color(terminal: &mut Terminal, color: Color, direction: Direction) {
+    let mut point = terminal.get_centered_border_point(&Size {
+        width: WIDTH,
+        height: WIDTH,
+    });
+    if let Direction::Right = direction {
+        point.x += WIDTH;
+        point.x -= 5;
+    }
+    terminal.set_cursor(point);
+    terminal.set_foreground_color(color.invert());
+    terminal.set_background_color(color);
+    terminal.write(match direction {
+        Direction::Left => "  L  ",
+        Direction::Right => "  R  ",
+    });
+    point.y += 1;
+    terminal.set_cursor(point);
+    terminal.write("     ");
+}
 
 impl Colors {
     /// Draws the palette's colors using background-colored spaces.
     pub fn draw(
-        mut x: SIZE,
-        mut y: SIZE,
+        mut point: Point,
         terminal: &mut Terminal,
         clickable_colors: &mut Vec<ClickableColor>,
+        state: &crate::event::State,
     ) -> Point {
         use Color::*;
+
+        draw_left_color(terminal, state.left_color);
+        draw_right_color(terminal, state.right_color);
 
         //
         // 4-bit colors
@@ -46,23 +85,27 @@ impl Colors {
         let bright_colors = [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White];
 
         let four_bit_color_center = WIDTH / 2 - bright_colors.len() as SIZE;
-        x += four_bit_color_center;
+        point.x += four_bit_color_center;
 
-        terminal.set_cursor(x, y);
+        terminal.set_cursor(point);
 
         for (index, color) in bright_colors.iter().enumerate() {
             terminal.set_background_color(*color);
             terminal.write("  ");
 
             clickable_colors.push(ClickableColor {
-                x: x + index as SIZE * 2,
-                y,
+                point: Point {
+                    x: point.x + index as SIZE * 2,
+                    ..point
+                },
                 width: 2,
                 color: *color,
             });
         }
 
-        y += 1;
+        point.y += 1;
+
+        terminal.set_cursor(point);
 
         // The next 8 colors
         let dark_colors = [
@@ -76,15 +119,16 @@ impl Colors {
             Gray,
         ];
 
-        terminal.set_cursor(x, y);
-
         for (index, color) in dark_colors.iter().enumerate() {
             terminal.set_background_color(*color);
             terminal.write("  ");
 
             clickable_colors.push(ClickableColor {
-                x: x + index as SIZE * 2,
-                y,
+                point: Point {
+                    x: point.x + index as SIZE * 2,
+                    ..point
+                },
+
                 width: 2,
                 color: *color,
             });
@@ -97,104 +141,98 @@ impl Colors {
         // We want to keep this as small as possible so we remove the first 17 colors
         // that are identical to the 4-bit colors and also remove all colors inside of the 8-bit colors that are identical
 
-        x -= four_bit_color_center;
-        y += 1;
+        point.x -= four_bit_color_center;
+        point.y += 1;
 
         // Filter duplicates
         let high_intensity_colors = [244, 196, 46, 226, 21, 201, 51, 231];
-        let four_bit_colors = high_intensity_colors.len() as SIZE * 2;
-        let colors = (four_bit_colors + 1..u8::MAX - GRAYSCALE_COLOR_COUNT)
+        let colors = (FOUR_BIT_COLOR_COUNT + 1..u8::MAX - GRAYSCALE_COLOR_COUNT)
             .filter(|color| !high_intensity_colors.contains(color))
             .enumerate();
 
-        let previous_x = x;
+        point.x += WIDTH;
         for (index, color) in colors {
             if index as SIZE % WIDTH == 0 {
-                x = previous_x;
-                terminal.set_cursor(x, y);
-                y += 1;
+                point.x -= WIDTH;
+                terminal.set_cursor(point);
+                point.y += 1;
             }
-            let byte_color = Color::ByteColor(color);
+            let byte_color = Color::ByteColor(color as u8);
             terminal.set_background_color(byte_color);
             terminal.write(" ");
 
             clickable_colors.push(ClickableColor {
-                x,
-                y: y - 1,
+                point: Point {
+                    y: point.y - 1,
+                    ..point
+                },
                 width: 1,
                 color: byte_color,
             });
-            x += 1;
+            point.x += 1;
         }
-        x = previous_x;
+        point.x -= WIDTH;
 
         let grayscale_colors = u8::MAX - GRAYSCALE_COLOR_COUNT + 1..=u8::MAX;
 
-        x += 1;
-
-        terminal.set_cursor(x, y);
+        point.x += 1;
+        terminal.set_cursor(point);
         for (index, color) in grayscale_colors.enumerate() {
             let byte_color = Color::ByteColor(color);
             terminal.set_background_color(byte_color);
             terminal.write(" ");
 
             clickable_colors.push(ClickableColor {
-                x: x + index as SIZE,
-                y,
+                point: Point {
+                    x: point.x + index as SIZE,
+                    ..point
+                },
                 width: 1,
                 color: byte_color,
             });
         }
 
-        x -= 1;
-        y += 1;
+        point.x -= 1;
+        point.y += 1;
 
         terminal.reset_colors();
 
-        Point { x, y }
+        point
     }
 }
 
-pub fn draw_border(palette_canvas: &mut Canvas, color: Color) -> Point {
-    palette_canvas.border(WIDTH + 2, color)
-}
-
 pub fn toggle(
+    terminal: &mut Terminal,
     main_canvas: &mut Canvas,
-    palette_canvas: &mut Canvas,
     clickable_colors: &mut Vec<ClickableColor>,
     palette: &mut Option<Colors>,
     input_field: &mut Option<input::Field>,
-    color: Color,
+    state: &crate::event::State,
 ) {
     if palette.is_some() {
-        main_canvas.terminal.clear();
+        terminal.clear();
         main_canvas.redraw();
         clickable_colors.clear();
         *palette = None;
         *input_field = None;
-        main_canvas.terminal.hide_cursor();
+        terminal.hide_cursor();
     } else {
-        let mut border_point = draw_border(palette_canvas, color);
-
-        // Go inside the border
-        border_point.x += 1;
-        border_point.y += 1;
-
-        palette_canvas.filled_rectangle(border_point.x, border_point.y, WIDTH, WIDTH, Color::Black);
-
-        border_point.y /= 2;
-        border_point.y += 1;
-
-        let palette_point = Colors::draw(
-            border_point.x,
-            border_point.y,
-            &mut palette_canvas.terminal,
-            clickable_colors,
-        );
-        let new_input_field = input::Field::new(palette_point.x, palette_point.y);
-        new_input_field.redraw(&mut main_canvas.terminal);
+        let palette_point = self::draw(terminal, clickable_colors, state);
+        let new_input_field = input::Field::new(palette_point);
+        new_input_field.redraw(terminal);
         *palette = Some(Colors);
         *input_field = Some(new_input_field);
     }
+}
+
+pub fn draw(
+    terminal: &mut Terminal,
+    clickable_colors: &mut Vec<ClickableColor>,
+    state: &crate::event::State,
+) -> Point {
+    let border_point = terminal.get_centered_border_point(&Size {
+        width: WIDTH,
+        height: WIDTH,
+    });
+    Colors::draw(border_point, terminal, clickable_colors, &state)
 }

@@ -1,6 +1,7 @@
 //! Terminal events defined specific to usage.
 
-use crate::terminal;
+use crate::terminal::SIZE;
+use crate::util::Size;
 
 pub enum MouseButton {
     Left,
@@ -19,8 +20,8 @@ pub enum EventKind {
 
 pub struct MouseEvent {
     pub kind: EventKind,
-    pub x: terminal::SIZE,
-    pub y: terminal::SIZE,
+    pub x: SIZE,
+    pub y: SIZE,
 }
 
 pub enum KeyModifier {
@@ -41,5 +42,5 @@ pub enum KeyEvent {
 pub enum Event {
     Key(KeyEvent),
     Mouse(MouseEvent),
-    Resize(terminal::Size),
+    Resize(Size),
 }
