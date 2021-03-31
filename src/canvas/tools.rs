@@ -132,28 +132,22 @@ impl Tool {
     pub fn draw(
         &self,
         canvas: &mut Canvas,
-        mut point: Point,
+        point: Point,
+        last_point: Option<Point>,
         color: Color,
-        last_point: &mut Option<Point>,
         tool_size: SIZE,
     ) {
-        point.y = normalize(point.y);
         if let Some(last_point) = &last_point {
-            for line_point in canvas.line(last_point.x, last_point.y, point.x, point.y) {
-                self.r#use(
-                    canvas,
-                    Point {
-                        x: line_point.x as SIZE,
-                        y: line_point.y as SIZE,
-                    },
-                    color,
-                    tool_size,
-                );
+            for draw_point in canvas.line(last_point.x, last_point.y, point.x, point.y) {
+                let draw_point = Point {
+                    x: draw_point.x as SIZE,
+                    y: draw_point.y as SIZE,
+                };
+                self.r#use(canvas, draw_point, color, tool_size);
             }
         } else {
             self.r#use(canvas, point, color, tool_size);
         }
-        *last_point = Some(point);
     }
 
     fn r#use(&self, canvas: &mut Canvas, point: Point, color: Color, size: SIZE) {
@@ -169,10 +163,6 @@ impl Tool {
             }
         }
     }
-}
-
-fn normalize(value: SIZE) -> SIZE {
-    value * 2
 }
 
 pub fn color_picker(terminal: &mut Terminal, canvas: &mut Canvas, state: &mut crate::event::State) {

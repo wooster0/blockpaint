@@ -3,6 +3,7 @@ use crate::terminal::{self, Terminal, SIZE};
 use crate::util::{Color, Point, Size};
 use terminal::event::{Event, EventKind, KeyEvent, KeyModifier, MouseButton, MouseEvent};
 mod input;
+mod undo_redo;
 
 #[derive(Clone, Default)]
 pub struct State {
@@ -24,6 +25,7 @@ pub fn main_loop(terminal: &mut Terminal) {
     let mut palette_input_field: Option<crate::input::Field> = None;
     let mut save_input_field: Option<crate::input::Field> = None;
     let mut clickable_colors = Vec::<palette::ClickableColor>::new();
+    let mut undo_redo_buffer = undo_redo::UndoRedoBuffer::new();
 
     let mut state = State {
         left_color: Color::White,
@@ -35,10 +37,14 @@ pub fn main_loop(terminal: &mut Terminal) {
         if let (Some(input_field), _) | (_, Some(input_field)) =
             (&mut palette_input_field, &mut save_input_field)
         {
-            let skip = input::handle_input(terminal, &event, input_field, &mut state);
-            if skip {
+            if input::handle_input(terminal, &event, input_field, &mut state) {
                 continue;
             }
+        }
+
+        if undo_redo::handle_undo_redo(terminal, &mut primary_canvas, &event, &mut undo_redo_buffer)
+        {
+            continue;
         }
 
         match event {
@@ -52,13 +58,25 @@ pub fn main_loop(terminal: &mut Terminal) {
                             MouseButton::Right => state.right_color,
                             _ => continue,
                         };
+                        let point = Point {
+                            y: point.y * 2,
+                            ..point
+                        };
+                        undo_redo_buffer.push(undo_redo::Operation {
+                            tool: state.tool.clone(),
+                            start: point,
+                            end: state.last_point,
+                            color,
+                            size: state.tool_size,
+                        });
                         state.tool.draw(
                             &mut primary_canvas,
                             point,
+                            state.last_point,
                             color,
-                            &mut state.last_point,
                             state.tool_size,
                         );
+                        state.last_point = Some(point);
                         terminal.flush();
                     }
                     EventKind::Drag(button) if palette.is_some() => {
