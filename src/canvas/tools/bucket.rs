@@ -2,15 +2,18 @@ use crate::{canvas::Canvas, util::*};
 
 impl Canvas {
     pub fn bucket(&mut self, point: Point, color: Color) {
+        let first_color = self.get_color(point);
+        if first_color == color {
+            return;
+        }
         let mut points = Vec::<Point>::new();
         let mut new_points = Vec::<Point>::new();
-        let first_color = self.get_color(point);
         new_points.push(point);
 
         while new_points.len() != 0 {
-            let x = new_points.clone();
+            let points_to_be_processed = new_points.clone();
             points.append(&mut new_points);
-            for mut point in x {
+            for mut point in points_to_be_processed {
                 let current_point = point;
 
                 if point.x != 0 {
