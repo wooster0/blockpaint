@@ -6,6 +6,8 @@ use crate::terminal::{
 use crate::util::Point;
 use crate::{terminal::SIZE, util::Color};
 
+mod bucket;
+
 impl Canvas {
     /// Draws a block.
     pub fn block(&mut self, point: Point, color: Color) {
@@ -35,6 +37,17 @@ impl Canvas {
             );
         }
         self.terminal.reset_colors();
+    }
+
+    pub fn line(
+        &self,
+        x1: SIZE,
+        y1: SIZE,
+        x2: SIZE,
+        y2: SIZE,
+    ) -> bracket_geometry::prelude::Bresenham {
+        use bracket_geometry::prelude::{Bresenham, Point};
+        Bresenham::new(Point::new(x1, y1), Point::new(x2, y2))
     }
 
     pub fn brush(&mut self, point: Point, color: Color, size: SIZE) {
@@ -102,17 +115,6 @@ impl Canvas {
             }
         }
     }
-
-    pub fn line(
-        &self,
-        x1: SIZE,
-        y1: SIZE,
-        x2: SIZE,
-        y2: SIZE,
-    ) -> bracket_geometry::prelude::Bresenham {
-        use bracket_geometry::prelude::{Bresenham, Point};
-        Bresenham::new(Point::new(x1, y1), Point::new(x2, y2))
-    }
 }
 
 #[derive(Clone)]
@@ -120,6 +122,7 @@ pub enum Tool {
     Brush,
     Quill,
     Rectangle,
+    Bucket,
 }
 
 impl Default for Tool {
@@ -160,6 +163,9 @@ impl Tool {
             }
             Tool::Rectangle => {
                 canvas.hollow_rectangle(point, size, size, color);
+            }
+            Tool::Bucket => {
+                canvas.bucket(point, color);
             }
         }
     }

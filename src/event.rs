@@ -183,6 +183,7 @@ pub fn main_loop(terminal: &mut Terminal) {
                         '1' => Brush,
                         '2' => Quill,
                         '3' => Rectangle,
+                        '4' => Bucket,
                         _ => todo!(),
                     };
                 }

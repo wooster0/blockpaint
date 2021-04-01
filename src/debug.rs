@@ -13,8 +13,8 @@ pub fn pause() {
 }
 
 /// Pauses the program for the given seconds.
-pub fn pause_for(milliseconds: u64) {
-    thread::sleep(time::Duration::from_secs(milliseconds));
+pub fn pause_for(seconds: u64) {
+    thread::sleep(time::Duration::from_secs(seconds));
 }
 
 /// Prints at a specific position.

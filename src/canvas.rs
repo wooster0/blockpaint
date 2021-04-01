@@ -41,12 +41,12 @@ impl Canvas {
         self.terminal.size = size;
     }
 
-    fn get_point(point: Point) -> usize {
+    fn get_position(point: Point) -> usize {
         point.x as usize + SIZE::MAX as usize * (point.y as usize / 2)
     }
 
     pub fn get_cell(&self, point: Point) -> &Cell {
-        let position = Self::get_point(point);
+        let position = Self::get_position(point);
 
         self.cells
             .get(position)
@@ -54,11 +54,25 @@ impl Canvas {
     }
 
     fn get_mut_cell(&mut self, point: Point) -> &mut Cell {
-        let position = Self::get_point(point);
+        let position = Self::get_position(point);
 
         self.cells
             .get_mut(position)
             .unwrap_or_else(|| panic!("cell at {} is out of range", point))
+    }
+
+    fn get_color(&self, point: Point) -> Color {
+        let cell = self.get_cell(point);
+        if point.y % 2 == 0 {
+            if let Some(color) = cell.upper_block {
+                return color;
+            }
+        } else {
+            if let Some(color) = cell.lower_block {
+                return color;
+            }
+        }
+        Color::default()
     }
 
     pub fn clear(&mut self) {
@@ -103,5 +117,37 @@ impl Canvas {
                 self.block(cell.point, lower_block_color);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_point() {
+        let mut canvas = Canvas::new();
+        let point = Point { x: 0, y: 0 };
+        let color = Color::Red;
+        canvas.half_block(point, color);
+        assert_eq!(canvas.get_color(point), color);
+        assert_ne!(canvas.get_color(Point { x: 1, y: 0 }), color);
+        assert_ne!(canvas.get_color(Point { x: 0, y: 1 }), color);
+
+        canvas.clear();
+        let point = Point { x: 0, y: 1 };
+        let color = Color::Green;
+        canvas.half_block(point, color);
+        assert_eq!(canvas.get_color(point), color);
+        assert_ne!(canvas.get_color(Point { x: 0, y: 0 }), color);
+        assert_ne!(canvas.get_color(Point { x: 0, y: 2 }), color);
+
+        canvas.clear();
+        let point = Point { x: 5, y: 3 };
+        let color = Color::Blue;
+        canvas.half_block(point, color);
+        assert_eq!(canvas.get_color(point), color);
+        assert_ne!(canvas.get_color(Point { x: 5, y: 2 }), color);
+        assert_ne!(canvas.get_color(Point { x: 5, y: 4 }), color);
     }
 }
