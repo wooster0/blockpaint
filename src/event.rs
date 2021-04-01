@@ -36,6 +36,8 @@ pub fn main_loop(terminal: &mut Terminal) {
     };
 
     while let Some(event) = terminal.read_event() {
+        print_diagnostics(terminal);
+
         if let (Some(input_field), _) | (_, Some(input_field)) =
             (&mut palette_input_field, &mut save_input_field)
         {
@@ -251,3 +253,12 @@ pub fn main_loop(terminal: &mut Terminal) {
         }
     }
 }
+
+#[cfg(debug_assertions)]
+fn print_diagnostics(terminal: &mut Terminal) {
+    terminal.set_cursor(Point{x:0,y:0});
+    terminal.write(&format!("Flush count: {}", terminal.flush_count));
+}
+
+#[cfg(not(debug_assertions))]
+fn print_diagnostics(terminal: &mut Terminal) {}

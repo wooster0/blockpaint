@@ -9,12 +9,29 @@ mod sys;
 /// Defines the terminal width and height boundary. 255 cells.
 pub type SIZE = u8;
 
+#[cfg(not(debug_assertions))]
 pub struct Terminal {
     pub handle: io::Stdout,
     pub size: Size,
 }
+#[cfg(debug_assertions)]
+pub struct Terminal {
+    pub handle: io::Stdout,
+    pub size: Size,
+    pub flush_count: usize,
+}
 
 impl Terminal {
+    #[cfg(debug_assertions)]
+    pub fn new() -> Self {
+        Self {
+            handle: io::stdout(),
+            size: Self::size(), // We get the size only once and then update it using the resize event
+            flush_count: 0,
+        }
+    }
+
+    #[cfg(not(debug_assertions))]
     pub fn new() -> Self {
         Self {
             handle: io::stdout(),
@@ -34,6 +51,13 @@ impl Terminal {
             .expect("formatted write to the terminal failed");
     }
 
+    #[cfg(debug_assertions)]
+    pub fn flush(&mut self) {
+        self.handle.flush().expect("flushing failed");
+        self.flush_count += 1;
+    }
+
+    #[cfg(not(debug_assertions))]
     pub fn flush(&mut self) {
         self.handle.flush().expect("flushing failed");
     }
