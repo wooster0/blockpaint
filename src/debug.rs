@@ -3,8 +3,7 @@
 
 //! Functions for easier debugging only available in debug (non-release) builds.
 
-use crate::terminal;
-use crate::util::Point;
+use crate::{terminal, util::Point};
 use std::{thread, time};
 
 /// Pauses the program until an interaction is detected.

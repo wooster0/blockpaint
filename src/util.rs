@@ -1,5 +1,4 @@
-use crate::canvas::palette;
-use crate::terminal::SIZE;
+use crate::{canvas::palette, terminal::SIZE};
 use std::{convert::TryFrom, fmt, ops};
 
 #[derive(Clone, Debug, Copy, PartialEq)]

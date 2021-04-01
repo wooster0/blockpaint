@@ -1,10 +1,11 @@
 use super::Canvas;
-use crate::terminal::{
-    event::{Event, EventKind, MouseButton, MouseEvent},
-    Terminal,
+use crate::{
+    terminal::{
+        event::{Event, EventKind, MouseButton, MouseEvent},
+        Terminal, SIZE,
+    },
+    util::{Color, Point},
 };
-use crate::util::Point;
-use crate::{terminal::SIZE, util::Color};
 
 mod bucket;
 

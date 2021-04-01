@@ -4,7 +4,6 @@ use crate::{
     terminal::{Terminal, SIZE},
     util::{Color, Point, Size},
 };
-
 #[derive(Clone, Debug)]
 pub struct ClickableColor {
     pub point: Point,

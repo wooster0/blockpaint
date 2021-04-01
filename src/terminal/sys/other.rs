@@ -3,7 +3,7 @@
 use crate::{
     terminal::{
         event::{Event, EventKind, KeyEvent, KeyModifier, MouseButton, MouseEvent},
-        SIZE, {Size, Terminal},
+        Size, Terminal, SIZE,
     },
     util::{Color, Point},
 };

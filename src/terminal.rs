@@ -1,6 +1,8 @@
 use crate::util::{Point, Size};
-use std::io::Write;
-use std::{fmt, io};
+use std::{
+    fmt,
+    io::{self, Write},
+};
 pub mod event;
 mod sys;
 

@@ -1,7 +1,6 @@
 //! Terminal events defined specific to usage.
 
-use crate::terminal::SIZE;
-use crate::util::Size;
+use crate::{terminal::SIZE, util::Size};
 
 pub enum MouseButton {
     Left,

@@ -1,6 +1,8 @@
-use crate::canvas::Canvas;
-use crate::terminal::SIZE;
-use crate::util::{Color, Point};
+use crate::{
+    canvas::Canvas,
+    terminal::SIZE,
+    util::{Color, Point},
+};
 
 impl Canvas {
     pub fn circle(&mut self, point: Point, color: Color, radius: SIZE) {

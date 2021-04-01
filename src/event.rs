@@ -1,6 +1,8 @@
-use crate::canvas::{palette, tools, Canvas};
-use crate::terminal::{self, Terminal, SIZE};
-use crate::util::{Color, Point, Size};
+use crate::{
+    canvas::{palette, tools, Canvas},
+    terminal::{self, Terminal, SIZE},
+    util::{Color, Point, Size},
+};
 use terminal::event::{Event, EventKind, KeyEvent, KeyModifier, MouseButton, MouseEvent};
 mod input;
 mod undo_redo;

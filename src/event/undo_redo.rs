@@ -1,9 +1,11 @@
-use crate::canvas::{tools, Canvas};
-use crate::terminal::{
-    event::{Event, KeyEvent},
-    Terminal, SIZE,
+use crate::{
+    canvas::{tools, Canvas},
+    terminal::{
+        event::{Event, KeyEvent},
+        Terminal, SIZE,
+    },
+    util::{Color, Point},
 };
-use crate::util::{Color, Point};
 
 pub struct Operation {
     pub tool: tools::Tool,

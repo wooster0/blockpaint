@@ -1,10 +1,13 @@
-use crate::event::State;
-use crate::terminal::{
-    self,
-    event::{Event, KeyEvent, KeyModifier},
-    Terminal,
+use crate::{
+    canvas::palette,
+    event::State,
+    input,
+    terminal::{
+        self,
+        event::{Event, KeyEvent, KeyModifier},
+        Terminal,
+    },
 };
-use crate::{canvas::palette, input};
 
 // We need to handle text input manually and can't read directly from the standard input stream
 // because it blocks all other input
