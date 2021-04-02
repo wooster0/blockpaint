@@ -68,10 +68,10 @@ impl UndoRedoBuffer {
     }
 }
 
-pub fn handle_undo_redo(
+pub fn handle(
+    event: &Event,
     terminal: &mut Terminal,
     canvas: &mut Canvas,
-    event: &Event,
     undo_redo_buffer: &mut UndoRedoBuffer,
 ) -> bool {
     if let Event::Key(key) = event {

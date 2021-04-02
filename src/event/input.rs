@@ -1,29 +1,29 @@
 use crate::{
-    canvas::palette,
     event::State,
-    input,
+    input, palette,
     terminal::{
         self,
-        event::{Event, KeyEvent, KeyModifier},
+        event::{Event, EventKind, KeyEvent, KeyModifier, MouseEvent},
         Terminal,
     },
 };
 
 // We need to handle text input manually and can't read directly from the standard input stream
 // because it blocks all other input
-pub fn handle_input(
-    terminal: &mut Terminal,
+pub fn handle(
     event: &Event,
+    terminal: &mut Terminal,
     input_field: &mut input::Field,
     state: &mut State,
 ) -> bool {
-    if let Event::Key(key) = event {
-        match key {
+    match event {
+        Event::Key(key) => match key {
             KeyEvent::Char(char, _) => {
                 if input_field.input().len() != palette::GRAYSCALE_COLOR_COUNT as usize {
                     let parsed_color = input_field.write(*char);
                     if let Some(new_color) = parsed_color {
                         state.left_color = new_color;
+                        palette::colors::draw_left_color(terminal, new_color);
                     }
                     input_field.redraw(terminal);
                     terminal.show_cursor();
@@ -38,6 +38,7 @@ pub fn handle_input(
                 };
                 if let Some(new_color) = parsed_color {
                     state.left_color = new_color;
+                    palette::colors::draw_left_color(terminal, new_color);
                 }
                 input_field.redraw(terminal);
                 terminal.show_cursor();
@@ -64,9 +65,23 @@ pub fn handle_input(
                 terminal.flush();
             }
             _ => return false,
+        },
+        Event::Mouse(MouseEvent { kind, point: _ }) => {
+            match kind {
+                EventKind::Release(_) => {
+                    terminal.reset_colors();
+                    input_field.redraw(terminal);
+                    terminal.hide_cursor();
+
+                    // We need to have this event available for the palette event handler as well
+                    return false;
+                }
+                _ => return false,
+            }
         }
-        true
-    } else {
-        false
+        _ => {
+            return false;
+        }
     }
+    true
 }

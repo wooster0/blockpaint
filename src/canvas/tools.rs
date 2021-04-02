@@ -1,9 +1,6 @@
 use super::Canvas;
 use crate::{
-    terminal::{
-        event::{Event, EventKind, MouseButton, MouseEvent},
-        Terminal, SIZE,
-    },
+    terminal::SIZE,
     util::{Color, Point},
 };
 
@@ -168,44 +165,6 @@ impl Tool {
             Tool::Bucket => {
                 canvas.bucket(point, color);
             }
-        }
-    }
-}
-
-pub fn color_picker(terminal: &mut Terminal, canvas: &mut Canvas, state: &mut crate::event::State) {
-    terminal.show_cursor();
-    while let Some(event) = terminal.read_event() {
-        match event {
-            Event::Mouse(MouseEvent { kind, x, y }) => {
-                let point = Point { x, y };
-
-                match kind {
-                    EventKind::Release(mouse_button) => {
-                        let cell = canvas.get_cell(Point {
-                            y: point.y * 2,
-                            ..point
-                        });
-                        let color = cell.upper_block.or(cell.lower_block).unwrap_or_default();
-                        match mouse_button {
-                            MouseButton::Left => {
-                                state.left_color = color;
-                            }
-                            MouseButton::Right => {
-                                state.right_color = color;
-                            }
-                            _ => {}
-                        }
-                        terminal.hide_cursor();
-                        terminal.flush();
-                        break;
-                    }
-                    _ => {
-                        terminal.set_cursor(point);
-                        terminal.flush();
-                    }
-                }
-            }
-            _ => {}
         }
     }
 }

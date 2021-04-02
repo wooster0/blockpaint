@@ -21,10 +21,9 @@ pub fn pause_for(seconds: u64) {
 /// # Examples
 ///
 /// ```
-/// debug::print(&terminal, 0, 0, format!("({}, {})", x, y));
+/// debug::print(&terminal, Point { x: 0, y: 0 }, &format!("{}", point));
 /// ```
-// This is made to be used with `format` instead of `format_args` simply because it's faster to type.
-pub fn print(terminal: &mut terminal::Terminal, point: Point, string: String) {
+pub fn print(terminal: &mut terminal::Terminal, point: Point, string: &str) {
     terminal.set_cursor(point);
     terminal.write(&string);
 }

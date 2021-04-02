@@ -1,4 +1,3 @@
-pub mod palette;
 pub mod shapes;
 pub mod tools;
 use crate::{

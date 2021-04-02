@@ -1,25 +1,31 @@
 use crate::{
-    canvas::palette,
+    palette,
     terminal::{Terminal, SIZE},
     util::{self, Color, Point},
 };
 #[derive(Clone, Debug)]
 pub struct Field {
-    pub point: Point,
+    point: Point,
     // Input must only be mutated through the methods provided so that we can update accordingly
     input: String,
-    pub x_center: SIZE,
+    x_center: SIZE,
     pub cursor_x: SIZE,
 }
 
 impl Field {
-    pub fn new(point: Point) -> Self {
+    pub fn new(point: Point, string: String) -> Self {
         Field {
             x_center: Self::x_center(point.x, 0),
             point,
-            input: String::new(),
-            cursor_x: 0,
+            cursor_x: string.len() as SIZE,
+            input: string,
         }
+    }
+
+    pub fn set_point(&mut self, point: Point) {
+        self.point = point;
+        self.x_center = Self::x_center(point.x, 0);
+        self.update();
     }
 
     pub fn x_center(x: SIZE, input_len: usize) -> SIZE {
@@ -35,6 +41,7 @@ impl Field {
             x: self.point.x + 1,
             ..self.point
         });
+        //terminal.set_background_color(color)
         terminal.write(&" ".repeat(palette::GRAYSCALE_COLOR_COUNT as usize));
         terminal.set_cursor(Point {
             x: self.x_center,

@@ -1,13 +1,15 @@
 //! Terminal events defined specific to usage.
 
-use crate::{terminal::SIZE, util::Size};
+use crate::util::{Point, Size};
 
+#[derive(Debug)]
 pub enum MouseButton {
     Left,
     Middle,
     Right,
 }
 
+#[derive(Debug)]
 pub enum EventKind {
     ScrollUp,
     ScrollDown,
@@ -19,8 +21,7 @@ pub enum EventKind {
 
 pub struct MouseEvent {
     pub kind: EventKind,
-    pub x: SIZE,
-    pub y: SIZE,
+    pub point: Point,
 }
 
 pub enum KeyModifier {

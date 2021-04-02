@@ -48,8 +48,10 @@ impl Terminal {
             event::Event::Mouse(event) => match event.kind {
                 event::MouseEventKind::Moved => Event::Mouse(MouseEvent {
                     kind: EventKind::Move,
-                    x: event.column as SIZE,
-                    y: event.row as SIZE,
+                    point: Point {
+                        x: event.column as SIZE,
+                        y: event.row as SIZE,
+                    },
                 }),
                 event::MouseEventKind::Drag(button) => {
                     let button = match button {
@@ -59,8 +61,10 @@ impl Terminal {
                     };
                     Event::Mouse(MouseEvent {
                         kind: EventKind::Drag(button),
-                        x: event.column as SIZE,
-                        y: event.row as SIZE,
+                        point: Point {
+                            x: event.column as SIZE,
+                            y: event.row as SIZE,
+                        },
                     })
                 }
                 event::MouseEventKind::Down(button) => {
@@ -71,8 +75,10 @@ impl Terminal {
                     };
                     Event::Mouse(MouseEvent {
                         kind: EventKind::Press(button),
-                        x: event.column as SIZE,
-                        y: event.row as SIZE,
+                        point: Point {
+                            x: event.column as SIZE,
+                            y: event.row as SIZE,
+                        },
                     })
                 }
                 event::MouseEventKind::Up(button) => {
@@ -83,19 +89,25 @@ impl Terminal {
                     };
                     Event::Mouse(MouseEvent {
                         kind: EventKind::Release(button),
-                        x: event.column as SIZE,
-                        y: event.row as SIZE,
+                        point: Point {
+                            x: event.column as SIZE,
+                            y: event.row as SIZE,
+                        },
                     })
                 }
                 event::MouseEventKind::ScrollUp => Event::Mouse(MouseEvent {
                     kind: EventKind::ScrollUp,
-                    x: event.column as SIZE,
-                    y: event.row as SIZE,
+                    point: Point {
+                        x: event.column as SIZE,
+                        y: event.row as SIZE,
+                    },
                 }),
                 event::MouseEventKind::ScrollDown => Event::Mouse(MouseEvent {
                     kind: EventKind::ScrollDown,
-                    x: event.column as SIZE,
-                    y: event.row as SIZE,
+                    point: Point {
+                        x: event.column as SIZE,
+                        y: event.row as SIZE,
+                    },
                 }),
             },
             event::Event::Key(event::KeyEvent { code, modifiers }) => match code {

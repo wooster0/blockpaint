@@ -2,6 +2,7 @@ mod canvas;
 mod debug;
 mod event;
 mod input;
+mod palette;
 mod terminal;
 mod util;
 
