@@ -29,7 +29,7 @@ impl Default for Cell {
 
 impl Canvas {
     pub fn new() -> Self {
-        // let (width, height) = (terminal.size.width, terminal.size.height);
+        // (terminal.size.width, terminal.size.height);
         Self {
             cells: vec![Default::default(); (SIZE::MAX as usize).pow(2)],
             terminal: Terminal::new(),

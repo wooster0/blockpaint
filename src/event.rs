@@ -130,12 +130,7 @@ pub fn main_loop(terminal: &mut Terminal) {
                                 height: rows * 2,
                             };
                             let border_point = terminal.get_centered_border_point(&size);
-                            secondary_canvas.hollow_rectangle(
-                                border_point,
-                                size.width,
-                                size.height,
-                                Color::White,
-                            );
+                            secondary_canvas.hollow_rectangle(border_point, size, Color::White);
                             terminal.flush();
                             let input_field = crate::input::Field::new(
                                 Point {

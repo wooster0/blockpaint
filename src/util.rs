@@ -28,7 +28,7 @@ pub struct Size {
 }
 
 impl Size {
-    pub fn new(width: usize, height: usize) -> Self {
+    pub fn from_terminal_size(width: usize, height: usize) -> Self {
         Self {
             width: SIZE::try_from(width).unwrap_or_else(|_| {
                 panic!("terminal width must be in range {}", Range(0..SIZE::MAX));

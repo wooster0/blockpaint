@@ -137,7 +137,7 @@ impl Terminal {
                 _ => return None,
             },
             event::Event::Resize(width, height) => {
-                Event::Resize(Size::new(width as usize, height as usize))
+                Event::Resize(Size::from_terminal_size(width as usize, height as usize))
             }
         };
         Some(event)
@@ -213,7 +213,7 @@ impl Terminal {
 
     pub fn size() -> Size {
         let size = terminal::size().expect("retrieving terminal size failed");
-        Size::new(size.0 as usize, size.1 as usize)
+        Size::from_terminal_size(size.0 as usize, size.1 as usize)
     }
 
     pub fn read() -> event::Event {

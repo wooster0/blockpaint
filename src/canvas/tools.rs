@@ -1,7 +1,7 @@
 use super::Canvas;
 use crate::{
     terminal::SIZE,
-    util::{Color, Point},
+    util::{Color, Point, Size},
 };
 
 mod bucket;
@@ -160,7 +160,14 @@ impl Tool {
                 canvas.quill(point, color, size);
             }
             Tool::Rectangle => {
-                canvas.hollow_rectangle(point, size, size, color);
+                canvas.hollow_rectangle(
+                    point,
+                    Size {
+                        width: size,
+                        height: size,
+                    },
+                    color,
+                );
             }
             Tool::Bucket => {
                 canvas.bucket(point, color);

@@ -1,7 +1,7 @@
 use crate::{
     canvas::Canvas,
     terminal::SIZE,
-    util::{Color, Point},
+    util::{Color, Point, Size},
 };
 
 impl Canvas {
@@ -33,24 +33,24 @@ impl Canvas {
         }
     }
 
-    pub fn hollow_rectangle(&mut self, point: Point, width: SIZE, height: SIZE, color: Color) {
+    pub fn hollow_rectangle(&mut self, point: Point, size: Size, color: Color) {
         // -----
         //
         // -----
-        self.blocks(point, color, width);
+        self.blocks(point, color, size.width);
         self.blocks(
             Point {
-                y: point.y + height - 1,
+                y: point.y + size.height - 1,
                 ..point
             },
             color,
-            width,
+            size.width,
         );
 
         // +---+
         // |   |
         // +---+
-        for index in 1..height {
+        for index in 1..size.height {
             self.block(
                 Point {
                     y: point.y + index,
@@ -60,7 +60,7 @@ impl Canvas {
             );
             self.block(
                 Point {
-                    x: point.x + width - 1,
+                    x: point.x + size.width - 1,
                     y: point.y + index,
                 },
                 color,
@@ -68,15 +68,15 @@ impl Canvas {
         }
     }
 
-    pub fn filled_rectangle(&mut self, point: Point, width: SIZE, height: SIZE, color: Color) {
-        for y_index in 0..height {
+    pub fn filled_rectangle(&mut self, point: Point, size: Size, color: Color) {
+        for y_index in 0..size.height {
             self.blocks(
                 Point {
                     y: point.y + y_index,
                     ..point
                 },
                 color,
-                width,
+                size.width,
             );
         }
     }
