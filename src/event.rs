@@ -31,6 +31,7 @@ pub fn main_loop(terminal: &mut Terminal) {
     let mut undo_redo_buffer = undo_redo::UndoRedoBuffer::new();
     // The `Point` doesn't matter here because it's re-set every time the palette is opened
     let mut palette_input_field = crate::input::Field::new(Point { x: 0, y: 0 }, String::new());
+    let mut palette_input_field_clickable_colors = Vec::<ClickableColor>::new();
 
     let mut state = State {
         left_color: Color::White,
@@ -95,16 +96,27 @@ pub fn main_loop(terminal: &mut Terminal) {
             },
             Event::Key(key) => match key {
                 KeyEvent::Tab => {
-                    let palette_point =
+                    let mut palette_input_field_point =
                         palette::colors::draw(terminal, &mut clickable_colors, &state);
-
-                    palette_input_field.set_point(palette_point);
+                    palette_input_field_point.x += 1;
+                    palette_input_field.set_point(palette_input_field_point);
+                    if let Some(last_clickable_color) = palette_input_field_clickable_colors.get(0)
+                    {
+                        terminal.set_background_color(last_clickable_color.color);
+                        palette_input_field.write(' ');
+                        palette_input_field.remove_char();
+                        palette_input_field.redraw(terminal);
+                        palette_input_field.update();
+                    }
+                    terminal.flush();
                     palette::events::handle(
                         terminal,
                         &mut clickable_colors,
                         &mut state,
                         &mut palette_input_field,
+                        &mut palette_input_field_clickable_colors,
                     );
+                    terminal.reset_colors();
                     terminal.clear();
                     primary_canvas.redraw();
                     clickable_colors.clear();
@@ -143,12 +155,7 @@ pub fn main_loop(terminal: &mut Terminal) {
                             if let Some(mut input_field) = save_input_field {
                                 loop {
                                     if let Some(event) = terminal.read_event() {
-                                        input::handle(
-                                            &event,
-                                            terminal,
-                                            &mut input_field,
-                                            &mut state,
-                                        );
+                                        input::handle(&event, terminal, &mut input_field);
                                     }
                                 }
                             }
@@ -164,13 +171,8 @@ pub fn main_loop(terminal: &mut Terminal) {
                 terminal.size = size.clone();
                 primary_canvas.resize_terminal(size.clone());
                 secondary_canvas.resize_terminal(size);
-
                 terminal.clear();
                 primary_canvas.redraw();
-                // if palette.is_some() {
-                //     secondary_canvas.redraw();
-                //     palette::draw(terminal, &mut clickable_colors, &state);
-                // }
                 terminal.flush();
             }
         }
@@ -178,10 +180,10 @@ pub fn main_loop(terminal: &mut Terminal) {
 }
 
 #[cfg(debug_assertions)]
-fn print_diagnostics(terminal: &mut Terminal) {
-    terminal.set_cursor(Point { x: 0, y: 0 });
+pub fn print_diagnostics(terminal: &mut Terminal) {
+    terminal.set_cursor(Point { x: 0, y: 1 });
     terminal.write(&format!("Flush count: {}", terminal.flush_count));
 }
 
 #[cfg(not(debug_assertions))]
-fn print_diagnostics(terminal: &mut Terminal) {}
+pub fn print_diagnostics(terminal: &mut Terminal) {}

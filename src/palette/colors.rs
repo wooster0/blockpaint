@@ -1,7 +1,7 @@
-use crate::palette::{FOUR_BIT_COLOR_COUNT, GRAYSCALE_COLOR_COUNT, WIDTH};
+use crate::palette::{self, FOUR_BIT_COLOR_COUNT, GRAYSCALE_COLOR_COUNT}; // TODO: import SIZE here once terminal::SIZE is gone
 use crate::{
     terminal::{Terminal, SIZE},
-    util::{Color, Point, Size},
+    util::{Color, Point},
 };
 #[derive(Clone, Debug)]
 pub struct ClickableColor {
@@ -36,12 +36,9 @@ pub fn draw_right_color(terminal: &mut Terminal, color: Color) {
 }
 
 fn draw_direction_color(terminal: &mut Terminal, color: Color, direction: Direction) {
-    let mut point = terminal.get_centered_border_point(&Size {
-        width: WIDTH,
-        height: WIDTH,
-    });
+    let mut point = terminal.get_centered_border_point(&palette::SIZE);
     if let Direction::Right = direction {
-        point.x += WIDTH;
+        point.x += palette::SIZE.width;
         point.x -= 5;
     }
     terminal.set_cursor(point);
@@ -64,10 +61,7 @@ pub fn draw(
 ) -> Point {
     use Color::*;
 
-    let mut point = terminal.get_centered_border_point(&Size {
-        width: WIDTH,
-        height: WIDTH,
-    });
+    let mut point = terminal.get_centered_border_point(&palette::SIZE);
 
     draw_left_color(terminal, state.left_color);
     draw_right_color(terminal, state.right_color);
@@ -79,7 +73,7 @@ pub fn draw(
     // The first 8 colors
     let bright_colors = [Black, Red, Green, Yellow, Blue, Magenta, Cyan, White];
 
-    let four_bit_color_center = WIDTH / 2 - bright_colors.len() as SIZE;
+    let four_bit_color_center = palette::SIZE.width / 2 - bright_colors.len() as SIZE;
     point.x += four_bit_color_center;
 
     terminal.set_cursor(point);
@@ -134,10 +128,9 @@ pub fn draw(
     //
 
     // We want to keep this as small as possible so we remove the first 17 colors
-    // that are identical to the 4-bit colors and also remove all colors inside of the 8-bit colors that are identical
+    // that are identical to the 4-bit colors and also remove all duplicates inside of the 8-bit colors
 
     point.x -= four_bit_color_center;
-    point.y += 1;
 
     // Filter duplicates
     let high_intensity_colors = [244, 196, 46, 226, 21, 201, 51, 231];
@@ -145,20 +138,20 @@ pub fn draw(
         .filter(|color| !high_intensity_colors.contains(color))
         .enumerate();
 
-    point.x += WIDTH;
     for (index, color) in colors {
-        if index as SIZE % WIDTH == 0 {
-            point.x -= WIDTH;
-            terminal.set_cursor(point);
+        if index as SIZE % palette::SIZE.width == 0 {
+            if index > 0 {
+                point.x -= palette::SIZE.width;
+            }
             point.y += 1;
+            terminal.set_cursor(point);
         }
         let byte_color = Color::ByteColor(color as u8);
         terminal.set_background_color(byte_color);
         terminal.write(" ");
-
         clickable_colors.push(ClickableColor {
             point: Point {
-                y: point.y - 1,
+                x: point.x,
                 ..point
             },
             width: 1,
@@ -166,12 +159,14 @@ pub fn draw(
         });
         point.x += 1;
     }
-    point.x -= WIDTH;
-
-    let grayscale_colors = u8::MAX - GRAYSCALE_COLOR_COUNT + 1..=u8::MAX;
+    point.x -= palette::SIZE.width;
+    point.y += 1;
 
     point.x += 1;
     terminal.set_cursor(point);
+
+    let grayscale_colors = u8::MAX - GRAYSCALE_COLOR_COUNT + 1..=u8::MAX;
+
     for (index, color) in grayscale_colors.enumerate() {
         let byte_color = Color::ByteColor(color);
         terminal.set_background_color(byte_color);
@@ -186,11 +181,8 @@ pub fn draw(
             color: byte_color,
         });
     }
-
     point.x -= 1;
     point.y += 1;
-
-    terminal.reset_colors();
 
     point
 }

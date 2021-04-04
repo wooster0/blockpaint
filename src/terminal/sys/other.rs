@@ -203,10 +203,9 @@ impl Terminal {
         self.handle.queue(style::ResetColor).unwrap();
     }
 
+    // TODO: eventually this method shouldn't be needed at all
     pub fn clear(&mut self) {
         self.handle
-            .queue(style::ResetColor)
-            .unwrap()
             .queue(terminal::Clear(terminal::ClearType::All))
             .unwrap();
     }

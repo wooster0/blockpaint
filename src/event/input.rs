@@ -1,5 +1,4 @@
 use crate::{
-    event::State,
     input, palette,
     terminal::{
         self,
@@ -10,36 +9,23 @@ use crate::{
 
 // We need to handle text input manually and can't read directly from the standard input stream
 // because it blocks all other input
-pub fn handle(
-    event: &Event,
-    terminal: &mut Terminal,
-    input_field: &mut input::Field,
-    state: &mut State,
-) -> bool {
+pub fn handle(event: &Event, terminal: &mut Terminal, input_field: &mut input::Field) -> bool {
     match event {
         Event::Key(key) => match key {
             KeyEvent::Char(char, _) => {
-                if input_field.input().len() != palette::GRAYSCALE_COLOR_COUNT as usize {
-                    let parsed_color = input_field.write(*char);
-                    if let Some(new_color) = parsed_color {
-                        state.left_color = new_color;
-                        palette::colors::draw_left_color(terminal, new_color);
-                    }
+                if input_field.input().len() != palette::INPUT_FIELD_WIDTH as usize {
+                    input_field.write(*char);
                     input_field.redraw(terminal);
                     terminal.show_cursor();
                     terminal.flush();
                 }
             }
             KeyEvent::Backspace(modifier) => {
-                let parsed_color = if let Some(KeyModifier::Control) = modifier {
+                if let Some(KeyModifier::Control) = modifier {
                     input_field.remove_word_to_left_of_cursor()
                 } else {
                     input_field.remove_char()
                 };
-                if let Some(new_color) = parsed_color {
-                    state.left_color = new_color;
-                    palette::colors::draw_left_color(terminal, new_color);
-                }
                 input_field.redraw(terminal);
                 terminal.show_cursor();
                 terminal.flush();
@@ -52,6 +38,7 @@ pub fn handle(
                     terminal.move_cursor_left(1);
                     input_field.cursor_x -= 1;
                 }
+                terminal.show_cursor();
                 terminal.flush();
             }
             KeyEvent::Right(modifier) => {
@@ -62,6 +49,7 @@ pub fn handle(
                     terminal.move_cursor_right(1);
                     input_field.cursor_x += 1;
                 }
+                terminal.show_cursor();
                 terminal.flush();
             }
             _ => return false,
@@ -69,8 +57,6 @@ pub fn handle(
         Event::Mouse(MouseEvent { kind, point: _ }) => {
             match kind {
                 EventKind::Release(_) => {
-                    terminal.reset_colors();
-                    input_field.redraw(terminal);
                     terminal.hide_cursor();
 
                     // We need to have this event available for the palette event handler as well

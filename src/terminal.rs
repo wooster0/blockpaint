@@ -63,13 +63,10 @@ impl Terminal {
     }
 
     pub fn get_centered_border_point(&self, size: &Size) -> Point {
-        let mut point = Point {
+        Point {
             x: self.size.width / 2 - size.width / 2,
-            y: self.size.height - size.height / 2,
-        };
-        point.y /= 2;
-        point.y += 1;
-        point
+            y: self.size.height / 2 - size.height / 2,
+        }
     }
 }
 
