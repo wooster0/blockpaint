@@ -109,12 +109,16 @@ impl Canvas {
     pub fn redraw(&mut self) {
         for index in 0..self.cells.len() {
             let cell = self.cells[index].clone();
-            if let Some(upper_block_color) = cell.upper_block {
-                self.block(cell.point, upper_block_color);
-            }
-            if let Some(lower_block_color) = cell.lower_block {
-                self.block(cell.point, lower_block_color);
-            }
+            self.redraw_cell(&cell);
+        }
+    }
+
+    pub fn redraw_cell(&mut self, cell: &Cell) {
+        if let Some(upper_block_color) = cell.upper_block {
+            self.block(cell.point, upper_block_color);
+        }
+        if let Some(lower_block_color) = cell.lower_block {
+            self.block(cell.point, lower_block_color);
         }
     }
 }

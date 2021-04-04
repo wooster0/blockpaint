@@ -80,7 +80,7 @@ pub fn main_loop(terminal: &mut Terminal) {
                     terminal.flush();
                 }
                 EventKind::Release(MouseButton::Middle) => {
-                    color_picker::handle_events(terminal, &mut primary_canvas, &mut state);
+                    color_picker::handle_events(terminal, &mut primary_canvas, &mut state, point);
                 }
                 EventKind::ScrollUp => {
                     state.tool_size += 1;
