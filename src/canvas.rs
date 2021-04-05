@@ -10,11 +10,12 @@ pub struct Canvas {
     terminal: Terminal,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Cell {
     pub upper_block: Option<Color>,
     pub lower_block: Option<Color>,
-    pub point: Point,
+    pub upper_point: Point,
+    pub lower_point: Point,
 }
 
 impl Default for Cell {
@@ -22,7 +23,8 @@ impl Default for Cell {
         Self {
             upper_block: Default::default(),
             lower_block: Default::default(),
-            point: Default::default(),
+            upper_point: Default::default(),
+            lower_point: Default::default(),
         }
     }
 }
@@ -89,8 +91,8 @@ impl Canvas {
             let current_cell = self.get_mut_cell(point); // TODO: can a second `get` be avoided?
             *current_cell = Cell {
                 upper_block: Some(color),
-                lower_block: current_cell.lower_block,
-                point,
+                upper_point: point,
+                ..*current_cell
             };
         } else {
             if let Some(upper_block_color) = current_cell.upper_block {
@@ -99,26 +101,25 @@ impl Canvas {
             self.terminal.write("▄");
             let current_cell = self.get_mut_cell(point); // TODO: can a second `get` be avoided?
             *current_cell = Cell {
-                upper_block: current_cell.upper_block,
                 lower_block: Some(color),
-                point,
+                lower_point: point,
+                ..*current_cell
             }
         }
     }
 
     pub fn redraw(&mut self) {
-        for index in 0..self.cells.len() {
-            let cell = self.cells[index].clone();
-            self.redraw_cell(&cell);
+        for cell in &self.cells.clone() {
+            self.redraw_cell(cell);
         }
     }
 
     pub fn redraw_cell(&mut self, cell: &Cell) {
         if let Some(upper_block_color) = cell.upper_block {
-            self.block(cell.point, upper_block_color);
+            self.block(cell.upper_point, upper_block_color);
         }
         if let Some(lower_block_color) = cell.lower_block {
-            self.block(cell.point, lower_block_color);
+            self.block(cell.lower_point, lower_block_color);
         }
     }
 }
