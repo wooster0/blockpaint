@@ -138,13 +138,17 @@ impl Tool {
         color: Color,
         tool_size: SIZE,
     ) {
-        if let Some(last_point) = &last_point {
-            for draw_point in canvas.line(last_point.x, last_point.y, point.x, point.y) {
-                let draw_point = Point {
-                    x: draw_point.x as SIZE,
-                    y: draw_point.y as SIZE,
-                };
-                self.r#use(canvas, draw_point, color, tool_size);
+        if let Some(last_point) = last_point {
+            if last_point == point {
+                self.r#use(canvas, point, color, tool_size);
+            } else {
+                for draw_point in canvas.line(last_point.x, last_point.y, point.x, point.y) {
+                    let draw_point = Point {
+                        x: draw_point.x as SIZE,
+                        y: draw_point.y as SIZE,
+                    };
+                    self.r#use(canvas, draw_point, color, tool_size);
+                }
             }
         } else {
             self.r#use(canvas, point, color, tool_size);

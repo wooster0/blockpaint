@@ -156,6 +156,14 @@ impl Terminal {
         self.handle.queue(cursor::MoveRight(cells as u16)).unwrap();
     }
 
+    pub fn save_cursor_position(&mut self) {
+        self.handle.queue(cursor::SavePosition).unwrap();
+    }
+
+    pub fn restore_cursor_position(&mut self) {
+        self.handle.queue(cursor::RestorePosition).unwrap();
+    }
+
     pub fn set_foreground_color(&mut self, color: Color) {
         self.handle
             .queue(style::SetForegroundColor(Self::convert_color(color)))

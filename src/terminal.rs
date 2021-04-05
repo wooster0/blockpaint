@@ -45,9 +45,9 @@ impl Terminal {
             .expect("write to the terminal failed");
     }
 
-    pub fn write_args(&mut self, string: fmt::Arguments) {
+    pub fn write_args(&mut self, arguments: fmt::Arguments) {
         self.handle
-            .write_fmt(string)
+            .write_fmt(arguments)
             .expect("formatted write to the terminal failed");
     }
 
@@ -55,6 +55,12 @@ impl Terminal {
     pub fn flush(&mut self) {
         self.handle.flush().expect("flushing failed");
         self.flush_count += 1;
+
+        self.save_cursor_position();
+        self.set_cursor(Point { x: 0, y: 0 });
+        let flush_count = self.flush_count;
+        self.write_args(format_args!("Flush count: {}", flush_count));
+        self.restore_cursor_position();
     }
 
     #[cfg(not(debug_assertions))]

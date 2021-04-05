@@ -16,7 +16,6 @@ pub fn handle(
     palette_input_field_clickable_colors: &mut Vec<colors::ClickableColor>,
 ) {
     while let Some(event) = terminal.read_event() {
-        crate::event::print_diagnostics(terminal);
         if crate::event::input::handle(&event, terminal, input_field) {
             let parsed_color = util::parse_rgb_color(input_field.input());
             if let Some(color) = parsed_color {
@@ -77,7 +76,7 @@ pub fn handle(
                             {
                                 // temporary
                                 terminal.reset_colors();
-                                terminal.set_cursor(Point { x: 0, y: 0 });
+                                terminal.set_cursor(Point { x: 0, y: 1 });
                                 terminal.write(&format!("{},{:?}             ", point, new_color));
                             }
                             match button {
