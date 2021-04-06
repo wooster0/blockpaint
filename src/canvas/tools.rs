@@ -7,24 +7,28 @@ use crate::{
 mod bucket;
 
 impl Canvas {
-    /// Draws a block.
-    pub fn block(&mut self, point: Point, color: Color) {
+    /// Sets the terminal cursor accordingly and then draws a block.
+    pub fn block_at(&mut self, point: Point, color: Color) {
         self.terminal.set_cursor(Point {
             y: point.y / 2,
             ..point
         });
-        self.terminal.set_foreground_color(color);
         self.half_block(point, color);
+    }
+
+    /// Draws a block.
+    pub fn block(&mut self, point: Point, color: Color) {
+        self.terminal.set_foreground_color(color);
+        self.block_at(point, color);
         self.terminal.reset_colors();
     }
 
-    /// Efficiently draws multiple blocks in a row.
-    pub fn blocks(&mut self, point: Point, color: Color, count: SIZE) {
+    /// Sets the terminal cursor accordingly and then efficiently draws multiple blocks in a row.
+    pub fn blocks_at(&mut self, point: Point, color: Color, count: SIZE) {
         self.terminal.set_cursor(Point {
             y: point.y / 2,
             ..point
         });
-        self.terminal.set_foreground_color(color);
         for index in 0..count {
             self.half_block(
                 Point {
@@ -34,6 +38,12 @@ impl Canvas {
                 color,
             );
         }
+    }
+
+    /// Efficiently draws multiple blocks in a row.
+    pub fn blocks(&mut self, point: Point, color: Color, count: SIZE) {
+        self.terminal.set_foreground_color(color);
+        self.blocks_at(point, color, count);
         self.terminal.reset_colors();
     }
 
@@ -50,9 +60,13 @@ impl Canvas {
 
     pub fn brush(&mut self, point: Point, color: Color, size: SIZE) {
         match size {
-            1 => self.block(point, color), // Middle dot
+            1 => {
+                self.terminal.set_foreground_color(color);
+                self.block_at(point, color); // Middle dot
+            }
             2 => {
-                self.block(
+                self.terminal.set_foreground_color(color);
+                self.block_at(
                     // Left dot
                     Point {
                         y: point.y - 1,
@@ -60,7 +74,7 @@ impl Canvas {
                     },
                     color,
                 );
-                self.block(
+                self.block_at(
                     // Upper dot
                     Point {
                         x: point.x - 1,
@@ -68,8 +82,8 @@ impl Canvas {
                     },
                     color,
                 );
-                self.block(point, color); // Middle dot
-                self.block(
+                self.block_at(point, color); // Middle dot
+                self.block_at(
                     // Lower dot
                     Point {
                         x: point.x + 1,
@@ -77,7 +91,7 @@ impl Canvas {
                     },
                     color,
                 );
-                self.block(
+                self.block_at(
                     // Right dot
                     Point {
                         y: point.y + 1,
@@ -88,14 +102,17 @@ impl Canvas {
             }
             _ => {
                 self.circle(point, color, size - 1);
+                return; // `circle` has already reset the color
             }
         }
+        self.terminal.reset_colors();
     }
 
     pub fn quill(&mut self, point: Point, color: Color, size: SIZE) {
+        self.terminal.set_foreground_color(color);
         for size in 0..=size {
             if size % 2 == 0 {
-                self.block(
+                self.block_at(
                     Point {
                         y: point.y + size / 2,
                         ..point
@@ -103,7 +120,7 @@ impl Canvas {
                     color,
                 );
             } else {
-                self.block(
+                self.block_at(
                     Point {
                         y: point.y - size / 2,
                         ..point
@@ -112,6 +129,7 @@ impl Canvas {
                 );
             }
         }
+        self.terminal.reset_colors();
     }
 }
 

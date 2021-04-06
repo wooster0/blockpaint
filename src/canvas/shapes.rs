@@ -5,6 +5,7 @@ use crate::{
 };
 
 impl Canvas {
+    // TODO: this should use `blocks`
     pub fn circle(&mut self, point: Point, color: Color, radius: SIZE) {
         let radius = radius as i32;
         let center_x = point.x as i32;
@@ -34,11 +35,12 @@ impl Canvas {
     }
 
     pub fn hollow_rectangle(&mut self, point: Point, size: Size, color: Color) {
+        self.terminal.set_foreground_color(color);
         // -----
         //
         // -----
-        self.blocks(point, color, size.width);
-        self.blocks(
+        self.blocks_at(point, color, size.width);
+        self.blocks_at(
             Point {
                 y: point.y + size.height - 1,
                 ..point
@@ -51,14 +53,14 @@ impl Canvas {
         // |   |
         // +---+
         for index in 1..size.height {
-            self.block(
+            self.block_at(
                 Point {
                     y: point.y + index,
                     ..point
                 },
                 color,
             );
-            self.block(
+            self.block_at(
                 Point {
                     x: point.x + size.width - 1,
                     y: point.y + index,
@@ -66,11 +68,13 @@ impl Canvas {
                 color,
             );
         }
+        self.terminal.reset_colors();
     }
 
     pub fn filled_rectangle(&mut self, point: Point, size: Size, color: Color) {
+        self.terminal.set_foreground_color(color);
         for y_index in 0..size.height {
-            self.blocks(
+            self.blocks_at(
                 Point {
                     y: point.y + y_index,
                     ..point
@@ -79,5 +83,6 @@ impl Canvas {
                 size.width,
             );
         }
+        self.terminal.reset_colors();
     }
 }
