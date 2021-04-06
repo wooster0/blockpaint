@@ -95,24 +95,26 @@ pub fn main_loop(terminal: &mut Terminal) {
                     }
                 }
                 EventKind::Move => {
-                    let primary_canvas_cells = primary_canvas.cells.clone();
+                    continue;
+
                     for (index, secondary_cell) in secondary_canvas.cells.clone().iter().enumerate()
                     {
                         if secondary_cell.upper_block.is_some() {
-                            let primary_cell = &primary_canvas_cells[index];
+                            let primary_cell = &primary_canvas.cells[index];
                             primary_canvas.block(
                                 secondary_cell.upper_point,
                                 primary_cell.upper_block.unwrap_or_default(),
                             );
                         }
                         if secondary_cell.lower_block.is_some() {
-                            let primary_cell = &primary_canvas_cells[index];
+                            let primary_cell = &primary_canvas.cells[index];
                             primary_canvas.block(
                                 secondary_cell.lower_point,
                                 primary_cell.lower_block.unwrap_or_default(),
                             );
                         }
                     }
+
                     secondary_canvas.clear();
 
                     let point = Point {
