@@ -9,22 +9,10 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [target.'cfg(not(target = "redox"))'.dependencies]
-crossterm = "0.19"
+crossterm = "0.19.0"
 
 [target.'cfg(target = "redox")'.dependencies]
-termion = "1.5"
+termion = "1.5.6"
 
 [dependencies]
-bracket-geometry = "0.8.2"
-
-[profile.release]
-opt-level = 3
-debug = false
-debug-assertions = false
-overflow-checks = false
-lto = true # Default: false
-panic = 'unwind'
-incremental = false
-codegen-units = 1 # Default: 16
-rpath = false
-# Other ways for performance: PGO
+bracket-geometry = "0.8.7"

@@ -20,6 +20,16 @@ pub struct State {
     pub tool_size: SIZE,
 }
 
+const INSTRUCTIONS: [&str; 7] = [
+    "* Draw pixels using the left and right mouse buttons",
+    "* Toggle the palette using Tab and select colors with the left and right mouse buttons",
+    "* Use the mouse wheel to adjust brush size",
+    "* Use number keys 1-4 to change tool: 1 = brush, 2 = quill, 3 = rectangle, 4 = fill bucket",
+    "* Ctrl+Z to undo, Ctrl+Y to redo last action",
+    "* Pick a color from pixels on the canvas using the middle mouse button",
+    "* Press Escape to exit",
+];
+
 pub fn main_loop(terminal: &mut Terminal) {
     // The main canvas for the image
     let mut primary_canvas = Canvas::new();
@@ -45,6 +55,14 @@ pub fn main_loop(terminal: &mut Terminal) {
     };
 
     while let Some(event) = terminal.read_event() {
+        for (index, instruction) in INSTRUCTIONS.iter().enumerate() {
+            terminal.set_cursor(Point {
+                x: 1,
+                y: 1 + index as terminal::SIZE,
+            });
+            terminal.write(instruction);
+        }
+
         if undo_redo::handle(&event, terminal, &mut primary_canvas, &mut undo_redo_buffer) {
             continue;
         }
@@ -173,7 +191,7 @@ pub fn main_loop(terminal: &mut Terminal) {
                         '2' => Quill,
                         '3' => Rectangle,
                         '4' => Bucket,
-                        _ => todo!(),
+                        _ => continue,//todo!(),
                     };
                 }
                 KeyEvent::Char('s', modifier) => {

@@ -9,5 +9,3 @@ BlockPaint is a painting program that allows you to draw pixel graphics in the t
 * A palette supporting 4-bit, 8-bit and true color 24-bit colors!
 * Various tools such as a brush, a quill and more!
 * Undo and redo!-->
-
-This is a work in progress.
