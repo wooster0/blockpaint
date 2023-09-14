@@ -40,12 +40,9 @@ pub fn handle(
             Event::Mouse(MouseEvent { kind, point }) => {
                 match kind {
                     EventKind::Release(button) => {
-                        if let Some(selected_color) = colors::get_color(&clickable_colors, point)
-                            .or(colors::get_color(
-                                &palette_input_field_clickable_colors,
-                                point,
-                            ))
-                        {
+                        if let Some(selected_color) = colors::get_color(clickable_colors, point).or(
+                            colors::get_color(palette_input_field_clickable_colors, point),
+                        ) {
                             match button {
                                 MouseButton::Left => {
                                     state.left_color = selected_color;
@@ -72,7 +69,7 @@ pub fn handle(
                         state.last_point = None;
                     }
                     EventKind::Drag(button) => {
-                        if let Some(new_color) = colors::get_color(&clickable_colors, point) {
+                        if let Some(new_color) = colors::get_color(clickable_colors, point) {
                             {
                                 // temporary
                                 terminal.reset_colors();

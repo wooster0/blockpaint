@@ -25,5 +25,5 @@ pub fn pause_for(seconds: u64) {
 /// ```
 pub fn print(terminal: &mut terminal::Terminal, point: Point, string: &str) {
     terminal.set_cursor(point);
-    terminal.write(&string);
+    terminal.write(string);
 }

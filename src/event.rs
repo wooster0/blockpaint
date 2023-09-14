@@ -43,10 +43,6 @@ pub fn main_loop(terminal: &mut Terminal) {
     // The `Point` doesn't matter here because it's re-set every time the palette is opened
     let mut palette_input_field = crate::input::Field::new(Point { x: 0, y: 0 }, String::new());
     let mut palette_input_field_clickable_colors = Vec::<ClickableColor>::new();
-    let mut cursor = terminal.get_centered_border_point(&Size {
-        width: 0,
-        height: 0,
-    });
 
     let mut state = State {
         left_color: Color::White,
@@ -225,11 +221,10 @@ pub fn main_loop(terminal: &mut Terminal) {
                                 }
                             }
                         }
-                    } else {
                     }
                 }
                 KeyEvent::Char('c', Some(KeyModifier::Control)) => break,
-                (KeyEvent::Char('h', _) | KeyEvent::Char('H', _)) => {
+                KeyEvent::Char('h', _) | KeyEvent::Char('H', _) => {
                     show_help = !show_help;
                     if !show_help {
                         for (index, line) in HELP.iter().enumerate() {

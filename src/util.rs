@@ -1,19 +1,10 @@
 use crate::{palette, terminal::SIZE};
 use std::{convert::TryFrom, fmt, ops};
 
-#[derive(Clone, Debug, Copy, PartialEq)]
+#[derive(Clone, Debug, Copy, PartialEq, Default)]
 pub struct Point {
     pub x: SIZE,
     pub y: SIZE,
-}
-
-impl Default for Point {
-    fn default() -> Self {
-        Self {
-            x: Default::default(),
-            y: Default::default(),
-        }
-    }
 }
 
 impl fmt::Display for Point {
@@ -44,7 +35,7 @@ impl fmt::Display for Range {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub enum Color {
     // 4-bit colors
     DarkRed,
@@ -53,6 +44,7 @@ pub enum Color {
     DarkBlue,
     DarkMagenta,
     DarkCyan,
+    #[default]
     Black,
     Gray,
     DarkGray,
@@ -66,13 +58,11 @@ pub enum Color {
     // 8-bit colors
     ByteColor(u8),
     // 24-bit colors
-    Rgb { r: u8, g: u8, b: u8 },
-}
-
-impl Default for Color {
-    fn default() -> Self {
-        Color::Black
-    }
+    Rgb {
+        r: u8,
+        g: u8,
+        b: u8,
+    },
 }
 
 impl Color {

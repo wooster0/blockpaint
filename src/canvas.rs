@@ -10,23 +10,12 @@ pub struct Canvas {
     terminal: Terminal,
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Default)]
 pub struct Cell {
     pub upper_block: Option<Color>,
     pub lower_block: Option<Color>,
     pub upper_point: Point,
     pub lower_point: Point,
-}
-
-impl Default for Cell {
-    fn default() -> Self {
-        Self {
-            upper_block: Default::default(),
-            lower_block: Default::default(),
-            upper_point: Default::default(),
-            lower_point: Default::default(),
-        }
-    }
 }
 
 impl Canvas {
@@ -68,10 +57,8 @@ impl Canvas {
             if let Some(color) = cell.upper_block {
                 return color;
             }
-        } else {
-            if let Some(color) = cell.lower_block {
-                return color;
-            }
+        } else if let Some(color) = cell.lower_block {
+            return color;
         }
         Color::default()
     }

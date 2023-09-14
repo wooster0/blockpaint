@@ -10,7 +10,7 @@ impl Canvas {
         let mut new_points = Vec::<Point>::new();
         new_points.push(point);
 
-        while new_points.len() != 0 {
+        while !new_points.is_empty() {
             let points_to_be_processed = new_points.clone();
             points.append(&mut new_points);
             for mut point in points_to_be_processed {

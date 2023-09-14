@@ -146,7 +146,7 @@ pub fn draw(
             point.y += 1;
             terminal.set_cursor(point);
         }
-        let byte_color = Color::ByteColor(color as u8);
+        let byte_color = Color::ByteColor(color);
         terminal.set_background_color(byte_color);
         terminal.write(" ");
         clickable_colors.push(ClickableColor {
