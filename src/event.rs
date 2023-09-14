@@ -20,14 +20,14 @@ pub struct State {
     pub tool_size: SIZE,
 }
 
-const INSTRUCTIONS: [&str; 7] = [
+const HELP: [&str; 7] = [
     "* Draw pixels using the left and right mouse buttons",
     "* Toggle the palette using Tab and select colors with the left and right mouse buttons",
     "* Use the mouse wheel to adjust brush size",
     "* Use number keys 1-4 to change tool: 1 = brush, 2 = quill, 3 = rectangle, 4 = fill bucket",
     "* Ctrl+Z to undo, Ctrl+Y to redo last action",
     "* Pick a color from pixels on the canvas using the middle mouse button",
-    "* Press Escape to exit",
+    "* Press Escape to exit, and H to toggle this help text",
 ];
 
 pub fn main_loop(terminal: &mut Terminal) {
@@ -54,13 +54,17 @@ pub fn main_loop(terminal: &mut Terminal) {
         ..Default::default()
     };
 
+    let mut show_help = true;
+
     while let Some(event) = terminal.read_event() {
-        for (index, instruction) in INSTRUCTIONS.iter().enumerate() {
-            terminal.set_cursor(Point {
-                x: 1,
-                y: 1 + index as terminal::SIZE,
-            });
-            terminal.write(instruction);
+        if show_help {
+            for (index, line) in HELP.iter().enumerate() {
+                terminal.set_cursor(Point {
+                    x: 1,
+                    y: 1 + index as terminal::SIZE,
+                });
+                terminal.write(line);
+            }
         }
 
         if undo_redo::handle(&event, terminal, &mut primary_canvas, &mut undo_redo_buffer) {
@@ -191,7 +195,7 @@ pub fn main_loop(terminal: &mut Terminal) {
                         '2' => Quill,
                         '3' => Rectangle,
                         '4' => Bucket,
-                        _ => continue,//todo!(),
+                        _ => continue, //todo!(),
                     };
                 }
                 KeyEvent::Char('s', modifier) => {
@@ -225,6 +229,21 @@ pub fn main_loop(terminal: &mut Terminal) {
                     }
                 }
                 KeyEvent::Char('c', Some(KeyModifier::Control)) => break,
+                (KeyEvent::Char('h', _) | KeyEvent::Char('H', _)) => {
+                    show_help = !show_help;
+                    if !show_help {
+                        for (index, line) in HELP.iter().enumerate() {
+                            terminal.set_cursor(Point {
+                                x: 1,
+                                y: 1 + index as terminal::SIZE,
+                            });
+                            for _ in 0..line.len() {
+                                terminal.write(" ");
+                            }
+                        }
+                        terminal.flush();
+                    }
+                }
                 KeyEvent::Esc => break,
                 _ => {}
             },
