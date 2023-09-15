@@ -5,6 +5,7 @@ version = "0.2.1"
 authors = ["wooster0 <wooster0@proton.me>"]
 edition = "2018"
 license = "MIT"
+repository = "https://github.com/wooster0/blockpaint"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
