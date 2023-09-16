@@ -16,6 +16,8 @@ pub struct Cell {
     pub lower_block: Option<Color>,
     pub upper_point: Point,
     pub lower_point: Point,
+    /// If this is `Some(...)`, this character uses up the entire cell.
+    pub character: Option<char>,
 }
 
 impl Canvas {
@@ -41,6 +43,16 @@ impl Canvas {
         self.cells
             .get(position)
             .unwrap_or_else(|| panic!("cell at {} is out of range", point))
+    }
+
+    pub fn write_character(&mut self, point: Point, character: char) {
+        let cell = self.get_mut_cell(point);
+        *cell = Cell {
+            upper_block: None,
+            lower_block: None,
+            character: Some(character),
+            ..*cell
+        }
     }
 
     fn get_mut_cell(&mut self, point: Point) -> &mut Cell {
@@ -79,6 +91,7 @@ impl Canvas {
             *current_cell = Cell {
                 upper_block: Some(color),
                 upper_point: point,
+                character: None,
                 ..*current_cell
             };
         } else {
@@ -90,6 +103,7 @@ impl Canvas {
             *current_cell = Cell {
                 lower_block: Some(color),
                 lower_point: point,
+                character: None,
                 ..*current_cell
             }
         }
@@ -102,11 +116,15 @@ impl Canvas {
     }
 
     pub fn redraw_cell(&mut self, cell: &Cell) {
-        if let Some(upper_block_color) = cell.upper_block {
-            self.block(cell.upper_point, upper_block_color);
-        }
-        if let Some(lower_block_color) = cell.lower_block {
-            self.block(cell.lower_point, lower_block_color);
+        if let Some(character) = cell.character {
+            self.terminal.write(&character.to_string());
+        } else {
+            if let Some(upper_block_color) = cell.upper_block {
+                self.block(cell.upper_point, upper_block_color);
+            }
+            if let Some(lower_block_color) = cell.lower_block {
+                self.block(cell.lower_point, lower_block_color);
+            }
         }
     }
 }

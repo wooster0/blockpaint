@@ -133,12 +133,13 @@ impl Canvas {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Tool {
     Brush,
     Quill,
     Rectangle,
     Bucket,
+    Text,
 }
 
 impl Default for Tool {
@@ -193,6 +194,9 @@ impl Tool {
             }
             Tool::Bucket => {
                 canvas.bucket(point, color);
+            }
+            Tool::Text => {
+                // This is handled in src/event.rs.
             }
         }
     }

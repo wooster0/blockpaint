@@ -12,7 +12,10 @@ mod undo_redo;
 
 #[derive(Clone, Default)]
 pub struct State {
+    /// This occasionally is set to `None`.
     pub last_point: Option<Point>,
+    /// This is set to `Some(...)` and then never set to `None` again.
+    pub lasting_last_point: Option<Point>,
     pub left_color: Color,
     pub right_color: Color,
     pub input_field_color: Option<Color>,
@@ -20,11 +23,12 @@ pub struct State {
     pub tool_size: SIZE,
 }
 
-const HELP: [&str; 7] = [
+const HELP: [&str; 8] = [
     "* Draw pixels using the left and right mouse buttons",
     "* Toggle the palette using Tab and select colors with the left and right mouse buttons",
     "* Use the mouse wheel to adjust brush size",
-    "* Use number keys 1-4 to change tool: 1 = brush, 2 = quill, 3 = rectangle, 4 = fill bucket",
+    "* Use number keys 1-4 to change tool: 1 = brush, 2 = quill, 3 = rectangle, 4 = fill bucket, 5 = text",
+    "* When using the text tool (5), press keys to draw them on the screen for ASCII art",
     "* Ctrl+Z to undo, Ctrl+Y to redo last action",
     "* Pick a color from pixels on the canvas using the middle mouse button",
     "* Press Escape to exit, and H to toggle this help text",
@@ -71,6 +75,25 @@ pub fn main_loop(terminal: &mut Terminal) {
             continue;
         }
 
+        // This is for the text tool.
+        match event {
+            Event::Key(ref key) => match key {
+                KeyEvent::Char(c, _) => {
+                    if let Some(point) = state.lasting_last_point {
+                        use tools::Tool::*;
+                        if state.tool == Text {
+                            primary_canvas.write_character(point, *c);
+                            terminal.set_cursor(point);
+                            terminal.write(&c.to_string());
+                            terminal.flush();
+                        }
+                    }
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+
         match event {
             Event::Mouse(MouseEvent { kind, point }) => match kind {
                 EventKind::Drag(button) | EventKind::Press(button) => {
@@ -98,6 +121,7 @@ pub fn main_loop(terminal: &mut Terminal) {
                         size: state.tool_size,
                     });
                     state.last_point = Some(point);
+                    state.lasting_last_point = Some(point);
                     terminal.flush();
                 }
                 EventKind::Release(MouseButton::Middle) => {
@@ -113,6 +137,8 @@ pub fn main_loop(terminal: &mut Terminal) {
                     }
                 }
                 EventKind::Move => {
+                    state.lasting_last_point = Some(point);
+
                     continue;
 
                     for (index, secondary_cell) in secondary_canvas.cells.clone().iter().enumerate()
@@ -147,6 +173,7 @@ pub fn main_loop(terminal: &mut Terminal) {
                         state.tool_size,
                     );
                     state.last_point = Some(point);
+                    state.lasting_last_point = Some(point);
 
                     terminal.flush();
                 }
@@ -191,38 +218,39 @@ pub fn main_loop(terminal: &mut Terminal) {
                         '2' => Quill,
                         '3' => Rectangle,
                         '4' => Bucket,
+                        '5' => Text,
                         _ => continue, //todo!(),
                     };
                 }
-                KeyEvent::Char('s', modifier) => {
-                    if let Some(KeyModifier::Control) = modifier {
-                        if save_input_field.is_none() {
-                            let rows = 3;
-                            let size = Size {
-                                width: 20,
-                                height: rows * 2,
-                            };
-                            let border_point = terminal.get_centered_border_point(&size);
-                            secondary_canvas.hollow_rectangle(border_point, size, Color::White);
-                            terminal.flush();
-                            let input_field = crate::input::Field::new(
-                                Point {
-                                    x: border_point.x + 1,
-                                    y: border_point.y + 1,
-                                },
-                                String::new(),
-                            );
-                            save_input_field = Some(input_field);
-                            if let Some(mut input_field) = save_input_field {
-                                loop {
-                                    if let Some(event) = terminal.read_event() {
-                                        input::handle(&event, terminal, &mut input_field);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                //KeyEvent::Char('s', modifier) => {
+                //    if let Some(KeyModifier::Control) = modifier {
+                //        if save_input_field.is_none() {
+                //            let rows = 3;
+                //            let size = Size {
+                //                width: 20,
+                //                height: rows * 2,
+                //            };
+                //            let border_point = terminal.get_centered_border_point(&size);
+                //            secondary_canvas.hollow_rectangle(border_point, size, Color::White);
+                //            terminal.flush();
+                //            let input_field = crate::input::Field::new(
+                //                Point {
+                //                    x: border_point.x + 1,
+                //                    y: border_point.y + 1,
+                //                },
+                //                String::new(),
+                //            );
+                //            save_input_field = Some(input_field);
+                //            if let Some(mut input_field) = save_input_field {
+                //                loop {
+                //                    if let Some(event) = terminal.read_event() {
+                //                        input::handle(&event, terminal, &mut input_field);
+                //                    }
+                //                }
+                //            }
+                //        }
+                //    }
+                //}
                 KeyEvent::Char('c', Some(KeyModifier::Control)) => break,
                 KeyEvent::Char('h', _) | KeyEvent::Char('H', _) => {
                     show_help = !show_help;
