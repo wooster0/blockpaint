@@ -23,3 +23,7 @@ blockpaint
 ```
 
 You can also build and run from source by cloning this repository and running `cargo run`.
+
+## New screenshot two years after publication (it gained some new features)
+
+![image](https://github.com/wooster0/blockpaint/assets/35064754/238f1c58-460b-4601-99bd-33b7a89fffc4)
