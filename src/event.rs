@@ -55,9 +55,52 @@ pub fn main_loop(terminal: &mut Terminal) {
     };
 
     let mut show_help = true;
+    let help_current_tool_spaces = "                       ";
+
+    let mut event_happened = false;
+
+    terminal.set_cursor(Point { x: 0, y: 0 });
+    terminal.write("Move your mouse to start!");
+    terminal.flush();
 
     while let Some(event) = terminal.read_event() {
+        if !event_happened {
+            terminal.set_cursor(Point { x: 0, y: 0 });
+            terminal.write("                         ");
+            terminal.flush();
+        }
+        event_happened = true;
         if show_help {
+            terminal.set_cursor(Point {
+                x: terminal.size.width / 2 - (help_current_tool_spaces.len() as u8) / 2,
+                y: 0,
+            });
+            terminal.write(help_current_tool_spaces);
+            terminal.set_cursor(Point {
+                x: terminal.size.width / 2 - (help_current_tool_spaces.len() as u8) / 2,
+                y: 0,
+            });
+            use tools::Tool;
+            terminal.write("\x1b[1m");
+            match state.tool {
+                Tool::Brush => {
+                    terminal.write("Current tool: brush");
+                }
+                Tool::Quill => {
+                    terminal.write("Current tool: quill");
+                }
+                Tool::Rectangle => {
+                    terminal.write("Current tool: rectangle");
+                }
+                Tool::Bucket => {
+                    terminal.write("Current tool: bucket");
+                }
+                Tool::Text => {
+                    terminal.write("Current tool: text");
+                }
+            }
+            terminal.write("\x1b[0m");
+
             for (index, line) in HELP.iter().enumerate() {
                 terminal.set_cursor(Point {
                     x: 1,
@@ -65,6 +108,8 @@ pub fn main_loop(terminal: &mut Terminal) {
                 });
                 terminal.write(line);
             }
+
+            terminal.flush();
         }
 
         if undo_redo::handle(&event, terminal, &mut primary_canvas, &mut undo_redo_buffer) {
@@ -264,6 +309,11 @@ pub fn main_loop(terminal: &mut Terminal) {
                                 terminal.write(" ");
                             }
                         }
+                        terminal.set_cursor(Point {
+                            x: terminal.size.width / 2 - (help_current_tool_spaces.len() as u8) / 2,
+                            y: 0,
+                        });
+                        terminal.write(help_current_tool_spaces);
                         terminal.flush();
                     }
                 }
